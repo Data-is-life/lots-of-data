@@ -1,0 +1,109 @@
+twenty_train = fetch_20newsgroups(subset='train', shuffle=True)
+
+#prints all the categories
+twenty_train.target_names
+
+#prints first line of the first data file
+print("\n".join(twenty_train.data[0].split("\n")[:3]))
+
+from sklearn.feature_extraction.text import CountVectorizer
+count_vect = CountVectorizer()
+X_train_counts = count_vect.fit_transform(twenty_train.data)
+X_train_counts.shape
+
+from sklearn.feature_extraction.text import TfidfTransformer
+tfidf_transformer = TfidfTransformer()
+X_train_tfidf = tfidf_transformer.fit_transform(X_train_counts)
+X_train_tfidf.shape
+
+import numpy as np
+from sklearn.naive_bayes import MultinomialNB
+from sklearn.pipeline import Pipeline
+from sklearn.linear_model import SGDClassifier
+from sklearn.model_selection import GridSearchCV
+
+clf = MultinomialNB().fit(X_train_tfidf, twenty_train.target)
+
+text_clf = Pipeline([('vect', CountVectorizer()), ('tfidf', TfidfTransformer()), ('clf', MultinomialNB()), ])
+text_clf = text_clf.fit(twenty_train.data, twenty_train.target)
+
+twenty_test = fetch_20newsgroups(subset='test', shuffle=True)
+predicted = text_clf.predict(twenty_test.data)
+np.mean(predicted == twenty_test.target)
+
+text_clf_svm = Pipeline([('vect', CountVectorizer()), ('tfidf', TfidfTransformer()), ('clf-svm', SGDClassifier(loss='hinge', penalty='l2', alpha=1e-3, n_iter=5, random_state=42))])
+_ = text_clf_svm.fit(twenty_train.data, twenty_train.target)
+predicted_svm = text_clf_svm.predict(twenty_test.data)
+np.mean(predicted_svm == twenty_test.target)
+
+parameters = {'vect__ngram_range': [(1, 1), (1, 2)], 'tfidf__use_idf': (True, False), 'clf__alpha': (1e-2, 1e-3), }
+
+gs_clf = GridSearchCV(text_clf, parameters, n_jobs=-1)
+gs_clf = gs_clf.fit(twenty_train.data, twenty_train.target)
+
+gs_clf.best_score_
+gs_clf.best_params_
+
+>>> from sklearn.model_selection import GridSearchCV
+>>> parameters_svm = {'vect__ngram_range': [(1, 1), (1, 2)], 'tfidf__use_idf': (True, False), 'clf-svm__alpha': (1e-2, 1e-3), }
+gs_clf_svm = GridSearchCV(text_clf_svm, parameters_svm, n_jobs=-1)
+gs_clf_svm = gs_clf_svm.fit(twenty_train.data, twenty_train.target)
+gs_clf_svm.best_score_
+gs_clf_svm.best_params_
+
+
+
+Data Scientist - passionate in working with big data (from cleaning data to building prediction/risk models), Natural Language Processing, and solving complex real-world problems via critical & logical thinking. 
+
+Seven years of experience as a real estate agent with a sustained record of succeeding in the SF Bay Area market (arguably, the most competitive real estate market in the US). 
+
+Adept in handling the busy schedule, understanding and delivering on client's needs & demands, meeting goals, negotiating, executing in a fast-paced environment while juggling meetings, and prospecting.
+
+Earned Bachelors of Science degree in Civil Engineering from San Jose State University w/ the CA-E.I.T. Certificate in 2009.
+
+Currently attending 12-week boot camp at Galvanize in Seattle. 
+
+Extremely data/stats-probability/solving real-world problems/analytics inspired. 
+
+Experienced Realtor with a sustained record of succeeding in SF Bay Area market (arguably, the most competitive real estate market in the US). 
+
+Skilled in understanding and delivering on client's needs & demands, solving complex real-world problems, prospecting, meeting sales goals, negotiation, making critical decisions based on experience & help from the support team & data. 
+
+Earned Bachelors of Science degree in Civil Engineering from San Jose State University w/ the CA-E.I.T. Certificate in 2009.
+
+AWS
+Spark
+MongoDB
+NoSQL
+TensorFlow
+Quantitative Analysis
+Bayesian Networks
+Data Visualization, Analysis, Wrangling,  & Manipulation
+Hadoop
+Big Data
+Web Scrapping
+Calculus & Linear Algebra 
+Hypothesis Testing
+Machine Learning Prediction & Risk Models 
+Project Management
+
+• Generating new leads through cold approaches and networking events. 
+• Developing a network of attorneys, lenders, CPAs, and contractors to help clients.
+• Keeping CRM organized and updated to create custom follow-up system for every lead.
+• Negotiating effectively and persuasively to meet tight acquisition or project deadlines, legal, regulatory, and budget constraints.
+• Creating Comparative Market Analysis (CMA), sales presentation, and preparing clear, concise, comprehensive, and legally sound documents and reports to properly advise clients and leads.
+• Promoting properties through industry-leading long open house hours, designing and creating marketing materials, and contacting neighbors, leads, and networking contacts.
+• Working and communicating effectively with escrow companies, lenders, inspectors, and all parties to ensure a smooth transaction.
+
+• Working with the project manager to design, execute, and fine-tune projects work flow.
+• Assisting in modifying and creating schedules, budget, activity breakdown, and staffing requirements for each project activity.
+• Reviewing and processing floor plans, RFIs, ASIs, addendums, submittals, and schedules.
+• Inspecting project sites to verify work progress is on schedule, in alignment with contract documents, within budget, and in conformance with scope and quality requirements.
+• Establishing and maintaining productive working relationships with the project manager, superintendent, admin staff, vendors, subcontractors, building officials, regulatory agencies, and clients.
+
+
+• Assisted in the work plans, schedules, budget, activity breakdown, and staffing requirements for each project activity.
+• Coordinated activities of project personnel to ensure project progresses on schedule, within the prescribed budget and in conformance with scope and quality requirements.
+• Reviewed and processed floor plans, RFIs, ASIs, addendums, submittals, and schedules using different software.
+• Inspected project sites multiple times per day to verify work progress in alignment with contract documents.
+• Established and maintained productive working relationships with the project manager, superintendent, admin staff, vendors, sub-contractors, building officials, regulatory agencies, and clients.

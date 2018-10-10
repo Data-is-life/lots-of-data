@@ -1,0 +1,274 @@
+_ = scatter_matrix(X, alpha=0.2, figsize=(20, 20), diagonal='kde')
+
+fig, axs = plt.subplots(len(numeric_predictors), figsize=(14, 14))
+
+for name, ax in zip(numeric_predictors, axs.flatten()):
+    plot_univariate_smooth(ax, cdf[name].values.reshape(-1, 1),
+                           y, bootstrap=100)
+    ax.set_title(name)
+    ax.set_ylim((0, 1))
+fig.tight_layout()
+
+fig, ax = plt.subplots(figsize=(14, 3))
+plot_univariate_smooth(ax, cdf['color'].values.reshape(-1, 1), y,
+                       smooth=False)
+ax.set_title("Color")
+plt.show()
+
+fig, ax = plt.subplots(figsize=(14, 3))
+plot_univariate_smooth(ax, cdf['game_time'].values.reshape(-1, 1), y,
+                       smooth=False)
+ax.set_title("Game Time")
+plt.show()
+
+y500 = y*5
+y500.replace(0, 2, inplace=True)
+ylog = np.log(y500)
+ylog = ylog-.693147
+
+fig, axs = plt.subplots(len(numeric_predictors), figsize=(14, 14))
+
+for name, ax in zip(numeric_predictors, axs.flatten()):
+    plot_univariate_smooth(ax, cdf[name].values.reshape(-1, 1), 
+                           ylog, bootstrap=100)
+    ax.set_title(name)
+    ax.set_ylim((0, np.log(5)))
+fig.tight_layout()
+
+weekday_fit = Pipeline([('weekday', ColumnSelector(name='weekday')), (
+    'weekday_spline', LinearSpline(knots=[0, 1, 2, 3, 4, 5, 6]))])
+game_time_fit = Pipeline([('game_time', ColumnSelector(name='game_time')), (
+    'game_time_spline', LinearSpline(knots=[150, 300, 450, 600]))])
+color_fit = Pipeline([('color', ColumnSelector(name='color')), (
+    'color_spline', LinearSpline(knots=[1]))])
+elo_fit = Pipeline([('elo', ColumnSelector(name='elo')), (
+    'elo_spline', LinearSpline(knots=[600, 700, 800, 900, 1000]))])
+diff_fit = Pipeline([('diff', ColumnSelector(name='diff')), (
+    'diff_spline', LinearSpline(knots=[-500, -100, -50, -20, -10, -5, 0, 0, 5, 10, 20, 50, 100, 500]))])
+opp_elo_fit = Pipeline([('opp_elo', ColumnSelector(name='opp_elo')), (
+    'opp_elo_spline', LinearSpline(knots=[600, 700, 800, 900, 1000, 1100, 1300, 1800]))])
+day_fit = Pipeline([('day', ColumnSelector(name='day')), (
+    'day_spline', LinearSpline(knots=[5, 10, 15, 20, 25, 30]))])
+start_time_fit = Pipeline([('start_time', ColumnSelector(name='start_time')), (
+    'start_time_spline', LinearSpline(knots=[0, 8000, 12000, 16000, 18000, 20000, 23999]))])
+    
+def catagorical_plot(ax, x, y):
+    def convert_to_numeric(catagorical):
+        classes = catagorical.unique()
+        classes_mapping = {cls: i for i, cls in enumerate(classes)}
+        classes_inv_mapping = {i: cls for i, cls in enumerate(classes)}
+        classes_numeric = catagorical.apply(lambda cls: classes_mapping[cls])
+        return classes_numeric, classes_inv_mapping
+
+    numeric, classes_mapping = convert_to_numeric(x)
+
+    noise = np.random.uniform(-0.3, 0.3, size=len(x))
+    ax.scatter(numeric + noise, y, color="grey", alpha=0.5)
+
+    box_data = list(y.groupby(x))
+    ax.boxplot([data for _, data in box_data], positions=range(len(box_data)))
+    ax.set_xticks(list(classes_mapping))
+    ax.set_xticklabels(list(x.unique()))
+    
+def balance_categorical_plot(ax, var_name):
+    catagorical_plot(ax, cdf[var_name], y)
+    ax.set_ylabel("result")
+    ax.set_xlabel(var_name)
+    ax.set_title("result by {}".format(var_name))
+    
+fig, ax = plt.subplots()
+balance_categorical_plot(ax, 'elo')
+
+fig, ax = plt.subplots()
+balance_categorical_plot(ax, 'opp_elo')
+
+fig, ax = plt.subplots()
+balance_categorical_plot(ax, 'diff')
+
+fig, ax = plt.subplots()
+balance_categorical_plot(ax, 'color')
+
+fig, ax = plt.subplots()
+balance_categorical_plot(ax, 'game_time')
+
+fig, ax = plt.subplots()
+balance_categorical_plot(ax, 'weekday')
+
+fig, ax = plt.subplots()
+balance_categorical_plot(ax, 'day')
+
+result_pipeline = FeatureUnion([
+    ('intercept', Intercept()), ('diff_fit', diff_fit),
+    ('elo_fit', elo_fit), ('opp_elo_fit', opp_elo_fit),
+    ('color_fit', color_fit), ('game_time_fit', game_time_fit),
+    ('start_time_fit', start_time_fit), ('weekday_fit', weekday_fit),
+    ('day_fit', day_fit)])
+result_pipeline.fit(X)
+result_features = result_pipeline.transform(X)
+result_model = LinearRegression(fit_intercept=False)
+result_model.fit(result_features.values, y.values)
+
+display_coef(result_model, result_features.columns)
+
+bootstrap_models = bootstrap_train(
+    LinearRegression, result_features.values,
+    y.values, fit_intercept=False, bootstraps=10000)
+
+fig, axs = plot_bootstrap_coefs(bootstrap_models, result_features.columns, n_col=3)
+fig.tight_layout()
+
+X = cdf[['diff', 'color', 'game_time', 'start_time', 'weekday']]
+
+diff_spec = ColumnSelector(name="diff")
+color_spec = ColumnSelector(name="color")
+game_spec = ColumnSelector(name="game_time")
+st_spec = ColumnSelector(name="start_time")
+wd_spec = ColumnSelector(name="weekday")
+
+
+# balanced_pipeline = FeatureUnion([
+#     ('intercept', Intercept()), ('diff_fit', diff_spec),
+#     ('color_fit', color_spec), ('game_time_fit', game_spec),
+#     ('start_time_fit', st_spec), ('weekday_fit', wd_spec)])
+balanced_pipeline = FeatureUnion([
+    ('intercept', Intercept()), ('diff_fit', diff_spec),
+    ('color_fit', color_spec), ('start_time_fit', st_spec)])
+balanced_pipeline.fit(X)
+balanced_features = balanced_pipeline.transform(X)
+balanced_features.head()
+
+balanced_model = LinearRegression(fit_intercept=False)
+balanced_model.fit(balanced_features, y)
+
+display_coef(balanced_model, balanced_features.columns)
+
+balanced_bootstrap = bootstrap_train(
+    LinearRegression, balanced_features.values,
+    y.values, fit_intercept=False, bootstraps=10000)
+
+fig, axs = plot_bootstrap_coefs(balanced_bootstrap, balanced_features.columns, n_col=2)
+fig.tight_layout()
+
+y_hat = balanced_model.predict(balanced_features.values)
+
+fig, axs = plot_partial_dependences(
+    balanced_model, X=X, var_names=['diff', 'color', 'game_time', 'start_time'],
+    pipeline=balanced_pipeline, y=y)
+fig.tight_layout()
+
+def rss(y, y_hat):
+    return np.sum((y - y_hat)**2)
+
+print("RSS: {}".format(rss(y, y_hat)))
+
+def rsq(y, y_hat):
+    ss_tot = rss(y, np.mean(y))
+    ss_res = rss(y, y_hat)
+    return 1 - (ss_res / ss_tot)
+
+print("R^2: {}".format(rsq(y, y_hat)))
+
+
+def bootstrap_rsq(X, y, pipeline, n_boot=10000):
+    rsqs = []
+    for _ in range(n_boot):
+        X_boot, y_boot = resample(X, y)
+        X_transform = pipeline.transform(X_boot)
+        model = LinearRegression(fit_intercept=False)
+        model.fit(X_transform.values, y_boot)
+        y_boot_hat = model.predict(X_transform.values)
+        rsqs.append(rsq(y_boot, y_boot_hat))
+    return rsqs
+
+rsqs = bootstrap_rsq(X, y, balanced_pipeline)
+
+fig, ax = plt.subplots(figsize=(12, 4))
+_ = ax.hist(rsqs, bins=50, color="grey", alpha=0.6)
+ax.set_title("Bootstrapped $R^2$ Statistics")
+ax.set_xlabel("$R^2$")
+
+
+def plot_many_residuals(var_names, y_hat, n_bins=50):
+    fig, axs = plt.subplots(len(var_names), figsize=(12, 3*len(var_names)))
+    for ax, name in zip(axs, var_names):
+        x = cdf[name]
+        residual_plot(ax, x, y, y_hat)
+        ax.set_xlabel(name)
+        ax.set_title("Model Residuals by {}".format(name))
+    return fig, axs
+
+def residual_plot(ax, x, y, y_hat, n_bins=50):
+    residuals = y - y_hat
+    ax.axhline(0, color="black", linestyle="--")
+    ax.scatter(x, residuals, color="grey", alpha=0.5)
+    ax.set_ylabel("Residuals ($y - \hat y$)")
+
+# weekday_fit = Pipeline([('weekday', ColumnSelector(name='weekday')), (
+#     'weekday_spline', LinearSpline(knots=[0, 1, 2, 3, 4, 5, 6]))])
+# game_time_fit = Pipeline([('game_time', ColumnSelector(name='game_time')), (
+#     'game_time_spline', LinearSpline(knots=[150, 300, 450, 600]))])
+# color_fit = Pipeline([('color', ColumnSelector(name='color')), (
+#     'color_spline', LinearSpline(knots=[0, 1]))])
+# elo_fit = Pipeline([('elo', ColumnSelector(name='elo')), (
+#     'elo_spline', LinearSpline(knots=[600, 700, 800, 900, 1000]))])
+# diff_fit = Pipeline([('diff', ColumnSelector(name='diff')), (
+#     'diff_spline', LinearSpline(knots=[-500, -100, -50, -20, -10, -5, 0, 0, 5, 10, 20, 50, 100, 500]))])
+# opp_elo_fit = Pipeline([('opp_elo', ColumnSelector(name='opp_elo')), (
+#     'opp_elo_spline', LinearSpline(knots=[600, 700, 800, 900, 1000, 1100, 1300, 1800]))])
+# day_fit = Pipeline([('day', ColumnSelector(name='day')), (
+#     'day_spline', LinearSpline(knots=[5, 10, 15, 20, 25, 30]))])
+# start_time_fit = Pipeline([('start_time', ColumnSelector(name='start_time')), (
+#     'start_time_spline', LinearSpline(knots=[0, 8000, 12000, 16000, 18000, 20000, 23999]))])
+
+# weekday_fit.transform(cdf)
+# game_time_fit.transform(cdf)
+# color_fit.transform(cdf)
+# elo_fit.transform(cdf)
+# diff_fit.transform(cdf)
+# opp_elo_fit.transform(cdf)
+# day_fit.transform(cdf)
+# start_time_fit.transform(cdf)
+# print('hello')
+
+
+# def plot_basis(axs, basis_expansion, t):
+#     basis = basis_expansion.fit_transform(t)
+#     for idx, ax in enumerate(axs.flatten()):
+#         ax.plot(t, basis[:, idx])
+
+
+
+# def plot_one_univariate(ax, var_name, mask=None, bootstrap=100):
+#     if mask is None:
+#         plot_univariate_smooth(ax, cdf[var_name].values.reshape(-1, 1),
+#                                cdf['result'], bootstrap=bootstrap)
+#     else:
+#         plot_univariate_smooth(ax, cdf[var_name].values.reshape(-1, 1),
+#                                cdf['result'], mask=mask, bootstrap=bootstrap)
+
+
+# def plot_many_predicteds_vs_actuals(var_names, y_hat, n_bins=50):
+#     fig, axs = plt.subplots(len(var_names), figsize=(12, 3*len(var_names)))
+#     for ax, name in zip(axs, var_names):
+#         x = cdf[name]
+#         predicteds_vs_actuals(ax, x, cdf["result"], y_hat, n_bins=n_bins)
+#         ax.set_title("{} Predicteds vs. Actuals".format(name))
+#     return fig, axs
+
+
+
+# var_names = ['elo', 'opp_elo', 'diff',
+#              'color', 'game_time', 'start_time', 'weekday', 'day']
+# y_hat = model.predict(features.values)
+
+
+# def residual_plot(ax, x, y, y_hat, n_bins=50):
+#     residuals = y - y_hat
+#     ax.axhline(0, color="black", linestyle="--")
+#     ax.scatter(x, residuals, color="grey", alpha=0.5)
+#     ax.set_ylabel("Residuals ($y - \hat y$)")
+# fig, ax = plt.subplots(figsize=(12, 3))
+# residual_plot(ax, y_hat, cdf["result"], y_hat)
+# ax.set_title("Residuals by Predicted Values")
+# ax.set_xlabel("$\hat y$")
+# plt.show()

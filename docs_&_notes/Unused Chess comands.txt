@@ -1,0 +1,277 @@
+time           -0.1 for win, +0.1 for loss
+if final move was a lot longer than it should have been
+
+abandoned      -0.2 for win, +0.2 for loss
+score at the time of abandonment
+
+stalemate      -0.25 for score lower than -5, +0.25 for score higher than 5
+score at the time of abandonment
+
+date_regex = r"(\d+\.\d+\.\d+)"
+event_regex = r"(Event\W+\w+\W+\w+)"
+round_regex = r"(Round\W+)"
+white_regex = r"(White\W+\w+)"
+black_regex = r"(Black\W+\w+)"
+result_regex = r"(Result\W+\w+)"
+whiteElo_regex = r"(WhiteElo\W+\w+)"
+blackElo_regex = r"(BlackElo\W+\w+)"
+timeControl_regex = r"(TimeControl\W+\w+)"
+endTime_regex = r"(EndTime\W+\w+\:\w+\:\w+\W+\w+)"
+termination_regex = r"(Termination\W+\w+\W+\w+\W+\w+\W+\w+)"
+moves_regex = r'1(.*)\%'
+
+date = []
+event = []
+roun = []
+white = []
+black = []
+result = []
+whiteElo = []
+blackElo = []
+timeControl = []
+endTime = []
+termination = []
+moves = []
+
+for num in cdfi.a:
+    mda = re.findall(date_regex, num, re.MULTILINE)
+    if len(mda)>=1:
+        date.append(mda)
+    mev = re.findall(event_regex, num, re.MULTILINE)
+    if len(mev)>=1:
+        event.append(mev)
+    mro = re.findall(round_regex, num, re.MULTILINE)
+    if len(mro)>=1:
+        roun.append(mro)
+    mwh = re.findall(white_regex, num, re.MULTILINE)
+    if len(mwh)>=1:
+        white.append(mwh)
+    mbl = re.findall(black_regex, num, re.MULTILINE)
+    if len(mbl)>=1:
+        black.append(mbl)
+    mre = re.findall(result_regex, num, re.MULTILINE)
+    if len(mre)>=1:
+        result.append(mre)
+    mwe = re.findall(whiteElo_regex, num, re.MULTILINE)
+    if len(mwe)>=1:
+        whiteElo.append(mwe)
+    mbe = re.findall(blackElo_regex, num, re.MULTILINE)
+    if len(mbe)>=1:
+        blackElo.append(mbe)
+    mtc = re.findall(timeControl_regex, num, re.MULTILINE)
+    if len(mtc)>=1:
+        timeControl.append(mtc)
+    met = re.findall(endTime_regex, num, re.MULTILINE)
+    if len(met)>=1:
+        endTime.append(met)
+    mte = re.findall(termination_regex, num, re.MULTILINE)
+    if len(mte)>=1:
+        termination.append(mte)
+    mve = re.findall(moves_regex, num, re.MULTILINE)
+    if len(mve)>=1:
+        moves.append(mve)
+        
+[len(date),len(event),len(roun),len(white),len(black),len(result),len(whiteElo),len(blackElo),len(timeControl),len(endTime),len(termination),len(moves)]
+cdf = pd.DataFrame({"date" : date,
+                    "event" : event,
+                    "rd" : roun,
+                    "white" : white,
+                    "black" : black,
+                    "result" : result,
+                    "white_elo" : whiteElo,
+                    "black_elo" : blackElo,
+                    "time_control" : timeControl,
+                    "end_time" : endTime,
+                    "termination" : termination})
+
+cdf['date'] = cdf.date.apply(''.join)
+cdf['event'] = cdf.event.apply(''.join)
+cdf['rd'] = cdf.rd.apply(''.join)
+cdf['white'] = cdf.white.apply(''.join)
+cdf['black'] = cdf.black.apply(''.join)
+cdf['result'] = cdf.result.apply(''.join)
+cdf['white_elo'] = cdf.white_elo.apply(''.join)
+cdf['black_elo'] = cdf.black_elo.apply(''.join)
+cdf['time_control'] = cdf.time_control.apply(''.join)
+cdf['end_time'] = cdf.end_time.apply(''.join)
+cdf['termination'] = cdf.termination.apply(''.join)
+
+cdf['event'] = cdf['event'].map(lambda x: x.strip('Event:"'))
+cdf['rd'] = cdf['rd'].map(lambda x: x.strip('Round: "'))
+cdf['rd'] = cdf['rd'].map(lambda x: x.strip('",'))
+cdf['white'] = cdf['white'].map(lambda x: x.strip('White: "'))
+cdf['black'] = cdf['black'].map(lambda x: x.strip('Black: "'))
+cdf['result'] = cdf['result'].map(lambda x: x.strip('Result: "'))
+cdf['white_elo'] = cdf['white_elo'].map(lambda x: x.strip('WhiteElo: "'))
+cdf['black_elo'] = cdf['black_elo'].map(lambda x: x.strip('BlackElo "'))
+cdf['time_control'] = cdf['time_control'].map(lambda x: x.strip('TimeControl: "'))
+cdf['end_time'] = cdf['end_time'].map(lambda x: x.strip('EndTime: "'))
+cdf['end_time'] = cdf['end_time'].map(lambda x: x.strip('PSDT '))
+cdf['termination'] = cdf['termination'].map(lambda x: x.replace('Termination: "',''))
+
+details_df = create_chess_df(cdfi)
+cdfi_len = cdfi.a.count()
+    details_list = [num for num in cdfi.a if i%2==0 for i in enumarate(cdfi_len)]
+    return delails_list
+    moves_list = []
+    for num in cdfi.a:
+        i = 0
+        while i<cdfi.a.count():
+            if i%2==1:
+                moves_list.append(num)
+                i+=1
+            else:
+                details_list.append(num)
+                i+=1
+    details_dict_list = [ast.literal_eval(num) for num in details_list]
+    moves_dict_list = [ast.literal_eval(num) for num in moves_list]
+
+    cdf = pd.DataFrame([ast.literal_eval(num) for num in details_list])
+    cdf = cdf.rename(columns = {'Date':'date','Event':'event','Round':'rd','White':'white',
+                                'Black':'black','Result':'result','WhiteElo':'white_elo',
+                                'BlackElo':'black_elo','TimeControl':'time_control',
+                                'EndTime':'end_time','Termination':'termination'})
+    mdf = pd.DataFrame(moves_dict_list)
+    cdf
+d = cdfi[cdfi['a'].str.contains("T", na=False)].reset_index().drop(columns=['index'])
+e = [ast.literal_eval(num) for num in d.a]
+m = cdfi[cdfi['a'].str.contains("^", na=False)].reset_index().drop(columns=['index'])
+n = [ast.literal_eval(num) for num in d.a]
+cdf = pd.DataFrame(e)
+
+
+
+    details_df['my_color'] = ['1' if num == 'TrueMoeG' else '0' for num in details_df.white] #Change 'TrueMoeG' to user_name
+    details_df['my_color'] = pd.Series([lambda x: '1' if x == 'TrueMoeG' else '0', details_df['white']])
+    details_df['my_elo'] = elo_split(details_df,'me')
+    details_df['opp_elo'] = elo_split(details_df,'opp')
+    details_df['diff'] = details_df['my_elo'].sub(details_df['opp_elo'])
+
+
+def elo_split(cdf,who):
+    wh_e = [num for num in cdf['white_elo']]
+    bl_e = [num for num in cdf['black_elo']]
+    my_c = [num for num in cdf['my_color']]
+    my_elo = []
+    opp_elo = []
+    if who == 'me':
+        i = 0
+        while i < len(wh_e):
+            if my_c[i] == '1':
+                my_elo.append(wh_e[i])
+                i+=1
+            else:
+                my_elo.append(bl_e[i])
+                i+=1
+        return my_elo
+    else:
+        i = 0
+        while i < len(wh_e):
+            if my_c[i] != '1':
+                #Change 'TrueMoeG' to user input
+                opp_elo.append(wh_e[i])
+                i+=1
+            else:
+                opp_elo.append(bl_e[i])
+                i+=1
+        return opp_elo
+        
+        
+    wb = []
+    for num in details_df.termination:
+        bw = re.findall(r"(\w+)", num, re.MULTILINE)
+        wb.append(bw)
+    details_df['winner'] = [lambda x: x[0], details_df['termination']]
+    details_df['won_by'] = pd.Series([num[-1] for num in wb])
+    
+   #cdf
+# wincdf = cdf[cdf.result==1.0]
+# loss_cdf = cdf[cdf.result==0.0]
+# draw_cdf = cdf[cdf.result==0.5]
+#win_cdf
+#loss_cdf
+#draw_cdf
+cdf_info = [dict(cdf.date.value_counts()), dict(cdf.result.value_counts()), dict(cdf.time_control.value_counts()),
+            dict(cdf.my_color.value_counts()), dict(cdf.won_by.value_counts()), dict(cdf.elo_delta.value_counts())]
+cdf_info
+
+
+
+# def result_weight(df):
+#     w_l = []
+#     i = 0
+#     while i<len(df.index):
+#         if df['result'][i] == 1:
+#             if df['color'][i] == 1:
+#                 if df['black_moves'][i] <= 2:
+#                     if (df['termination'][i] == 'time'):
+#                         w_l.append(df['result'][i]-=0.1)
+#                         i+=1
+#                     elif df['termination'][i] == 'abandoned':
+#                         w_l.append(df['result'][i]-=0.2)
+#                         i+=1
+# #                     elif df['termination'][i] == 'stalemate':
+# #                         w_l.append(df['result'][i]-=0.25)
+# #                         i+=1
+#                     else:
+#                         w_l.append(df['result'][i])
+#                         i+=1
+#                 else:
+#                     w_l.append(df['result'][i])
+#                     i+=1
+#             else:
+#                 if df['white_moves'][i] <= 2:
+#                     if (df['termination'][i] == 'time'):
+#                         w_l.append(df['result'][i]-=0.1)
+#                         i+=1
+#                     elif df['termination'][i] == 'abandoned':
+#                         w_l.append(df['result'][i]-=0.2)
+#                         i+=1
+# #                     elif df['termination'][i] == 'stalemate':
+# #                         w_l.append(df['result'][i]-=0.25)
+# #                         i+=1
+#                     else:
+#                         w_l.append(df['result'][i])
+#                         i+=1
+#                 else:
+#                     w_l.append(df['result'][i])
+#                     i+=1
+#         else:
+#             if df['color'][i] == 1:
+#                 if df['black_moves'][i] <= 2:
+#                     if (df['termination'][i] == 'time'):
+#                         w_l.append(df['result'][i]-=0.1)
+#                         i+=1
+#                     elif df['termination'][i] == 'abandoned':
+#                         w_l.append(df['result'][i]-=0.2)
+#                         i+=1
+# #                     elif df['termination'][i] == 'stalemate':
+# #                         w_l.append(df['result'][i]-=0.25)
+# #                         i+=1
+#                     else:
+#                         w_l.append(df['result'][i])
+#                         i+=1
+#                 else:
+#                     w_l.append(df['result'][i])
+#                     i+=1
+#             else:
+#                 if df['white_moves'][i] <= 2:
+#                     if (df['termination'][i] == 'time'):
+#                         w_l.append(df['result'][i]-=0.1)
+#                         i+=1
+#                     elif df['termination'][i] == 'abandoned':
+#                         w_l.append(df['result'][i]-=0.2)
+#                         i+=1
+# #                     elif df['termination'][i] == 'stalemate':
+# #                         w_l.append(df['result'][i]-=0.25)
+# #                         i+=1
+#                     else:
+#                         w_l.append(df['result'][i])
+#                         i+=1
+#                 else:
+#                     w_l.append(df['result'][i])
+#                     i+=1
+#     return w_l
+
+
+
