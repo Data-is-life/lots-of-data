@@ -8,13 +8,9 @@
 
 "Event":"10|0 Blitz", "Date": "2017.02.16", "Round": "4", "White": "TrueMoeG", "Black": "Shuzakhan", "Result": "0-1", "WhiteElo": "845", "BlackElo": "1183", "TimeControl": "600", "EndTime": "11:58:21 PST", "Termination": "Shuzakhan won by resignation" }~{
 
-
-
 pd.to_datetime
 pd.to_timedelta
 pd.to_numeric
-
-, "0-1 }~ }~{
 
 date
 end_time
@@ -27,20 +23,10 @@ winner
 won_by
 diff
 
-
 np.arange(10) = list(range(10))
 pd.Panel
 df.add_suffix('-t')
 
-
-git add src
-git remote  -v
-git status
-git branch
-git pair
-git pair var
-git pair apply
-git apply
 sudo apt-get install build-essential python-dev install python-dev git
 mongoimport --db nyt_dump --collection articles articles
 data/articles_mongoimport.json --batchSize 1
@@ -55,14 +41,9 @@ sudo du  -sh /var/cache/apt/archives
 cat *  > dest.pgn
 ip route
 sudo nano ./etc/hosts
-pip install --upgrade --no-cache-dir https://get.graphlab.com/GraphLab-Create/2.1 pip https://get.graphlab.com/GraphLab-Create/2.1
 pip install --upgrade pip
-update-grub
 pip check
-pip fix
 pip list
-
-
 
 npm i @jupyterlab/coreutils
 npm i @jupyterlab/application
