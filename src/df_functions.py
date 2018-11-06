@@ -34,7 +34,7 @@ def get_Xy_train_test(df):
     X = df.values
     print(f'X Shape: {X.shape}')
 
-    rand_split = np.random.randint(int(len(X) * .85), int(len(X) * .95))
+    rand_split = np.random.randint(int(len(X) * .925), int(len(X) * .975))
 
     X_train = X[:rand_split]
     y_train = y[:rand_split]
