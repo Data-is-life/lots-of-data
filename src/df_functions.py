@@ -74,13 +74,14 @@ def cross_validation_process(classifier, X_test, y_test, cv=5, scoring='average_
     scores = cross_val_score(
         classifier, X_test, y_test, cv=cv, scoring=scoring)
     print(f'Average Accuracy({scoring}) = {round(scores.mean()*100,2)}%')
-    print(f'\nStandard Deviation = {round(scores.std(),3)}')
-    print(f'\nScores({scoring}):\n {scores}')
+    print(f'Standard Deviation = {round(scores.std(),3)}')
+    print(f'Scores({scoring}) = {scores.round(3)}')
+    # print(f'{classifier.feature_}')
     y_pred = classifier.predict(X_test)
-    print(
-        f'\nClassification Report:\n{classification_report(y_test, y_pred)}\n')
+    # print(
+    #     f'\nClassification Report:\n{classification_report(y_test, y_pred)}\n')
     cm = confusion_matrix(y_test, y_pred)
-    print(f'confusion_matrix:\n{cm}\n')
-    print(f'confusion_matrix accuracy: {(cm[0][0]+cm[1][1])/cm.sum()*100}%')
-    print(f'-----------------------------------------------------------------------')
+    print(f'Prediction Confusion Matrix = \n{cm}')
+    print(f'Prediction Accuracy: {round(classifier.score(X_test, y_test)*100, 2)}%')
+    # print(f'-----------------------------------------------------------------------')
     return scores
