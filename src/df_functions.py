@@ -11,11 +11,11 @@ def get_Xy_train_test(df):
     y = np.array(df['result'])
     print(f'y Shape: {y.shape}')
 
-    bins = list(range(-2000, -499, 50))
-    bins.extend(list(range(-490, -199, 10)))
+    bins = list(range(-2000, -399, 100))
+    bins.extend(list(range(-390, -199, 10)))
     bins.extend(list(range(-195, 196, 5)))
-    bins.extend(list(range(200, 501, 10)))
-    bins.extend(list(range(550, 2001, 50)))
+    bins.extend(list(range(200, 401, 10)))
+    bins.extend(list(range(500, 2001, 100)))
 
     labels = list(range(len(bins) - 1))
 
@@ -73,15 +73,18 @@ def cross_validation_process(classifier, X_test, y_test, cv=5, scoring='average_
 
     scores = cross_val_score(
         classifier, X_test, y_test, cv=cv, scoring=scoring)
-    print(f'Average Accuracy({scoring}) = {round(scores.mean()*100,2)}%')
-    print(f'Standard Deviation = {round(scores.std(),3)}')
-    print(f'Scores({scoring}) = {scores.round(3)}')
-    # print(f'{classifier.feature_}')
+    print(f'Average_Accuracy({scoring})={round(scores.mean()*100,2)}%')
+    print(f'Standard_Deviation={round(scores.std(),3)}')
+    print(f'Scores({scoring})={scores.round(3)}')
+    try:
+    	print(f'Feature importance = {classifier.feature_importances_}')
+    except:
+    	print("No Feature Importances")
     y_pred = classifier.predict(X_test)
     # print(
     #     f'\nClassification Report:\n{classification_report(y_test, y_pred)}\n')
     cm = confusion_matrix(y_test, y_pred)
-    print(f'Prediction Confusion Matrix = \n{cm}')
-    print(f'Prediction Accuracy: {round(classifier.score(X_test, y_test)*100, 2)}%')
+    print(f'Prediction_Confusion_Matrix=\n{cm}')
+    print(f'Prediction_Accuracy={round(classifier.score(X_test, y_test)*100, 2)}%')
     # print(f'-----------------------------------------------------------------------')
     return scores
