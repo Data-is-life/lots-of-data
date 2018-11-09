@@ -45,30 +45,32 @@ The repository has the following structure.
 
 ```
 ├── data
-│   ├── adams_kasparov_2005.pgn
-│   ├── dest.pgn
-│   ├── df_final.csv
-│   ├── df_for_analysis.csv
-│   ├── df_for_model.csv
+│   ├── main_with_all_info.csv
 │   ├── moves.csv
-│   └── moves_initial.csv
+│   ├── moves_initial.csv
+│   ├── use_for_analysis.csv
+│   └── use_for_predictions.csv
 ├── docs_&_notes
-│   ├── Chess + other .txt
-│   └── Unused Chess comands.txt
-├── Dropped_models.md
+│   └── Dropped_models.md
 ├── README.md
 └── src
-    ├── All_in_one.ipynb
+    ├── all_classification_models.ipynb
     ├── Chess_analysis.ipynb
     ├── Chess_ann.ipynb
     ├── Chess_clean_data.ipynb
-    ├── Chess_KNN_Crossval.ipynb
-    ├── chess_linear.ipynb
-    ├── chess_logistic.ipynb
     ├── Chess_rnn.ipynb
-    ├── df_functions.py
-    ├── Old_chess_data_cleanup.ipynb
+    ├── clean_chess_game_log.py
+    ├── dummies_bins_test_train_cv.py
+    ├── old_files
+    │   ├── Chess_KNN_Crossval.ipynb
+    │   ├── chess_linear.ipynb
+    │   ├── chess_logistic.ipynb
+    │   ├── Chess + other .txt
+    │   ├── Old_chess_data_cleanup.ipynb
+    │   └── Unused Chess comands.txt
+    ├── scatter_matrix.png
     └── Score.ipynb
+
 ```
 ## Tools used so far:
 
