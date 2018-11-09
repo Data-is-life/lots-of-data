@@ -19,11 +19,8 @@ def custom_round(x, base=20):
 
 def initial_chess_data(filename):
 	'''First function:
-
 	Input = Game log from Chess.com
-
 	Cleans the file for any unnessacery lines from the game log file
-
 	Output = All game information as a text'''
 
     with open(filename, 'r+') as file:
@@ -37,10 +34,8 @@ def initial_chess_data(filename):
 def chess_data_cleanup(chess_text):
 	'''Second function:
 	Input = All game information as a text
-
 	Creates a df where one row is for game information, the following row 
 	is moves in that game.
-
 	Output = df with game information and moves'''
 
     chess_text = chess_text.replace('[', "").replace(']', "")
@@ -83,8 +78,10 @@ def chess_data_cleanup(chess_text):
 
     cl = ''.join([num for num in chess_text]).split("~") # I used '~' as a separator
 
+    # Named the only column "a", so it is easier in the next function
     df = DataFrame(cl, columns=['a'])
 
+    # If length of any string is less than 3, it is not needed
     df = df[df['a'].str.len() > 3]
 
     return df
@@ -93,16 +90,10 @@ def chess_data_cleanup(chess_text):
 def data_cleaning_1(df):
 	'''Third function:
 	Input:
-	df = Moves df
-	Creates a new df that has time information.
-
+	df = df with all information
+	creates two dfs. First df is all games information. Second df is for all 
+	the moves in those games.
 	Output:
-	t_df = Moves time df - all the times for moves
-	m_df = Moves df - Fixed column names
-	Takes the df from the chess_data_cleanup function and creates two dfs. 
-	First df is all games information
-	Second df is for all the moves in those games
-	c_df = main df with all the rows
 	m_df = moves df with all the moves
 	d_df = information df with all the game information'''
 
@@ -111,19 +102,19 @@ def data_cleaning_1(df):
     c_df['Date'] = c_df['Date'].fillna(method='ffill')
     c_df['EndTime'] = c_df['EndTime'].fillna(method='ffill')
 
-    '''Convert all the dates and time to dates and times'''
+    # Convert all the dates and time to dates and times
     c_df['date_time'] = to_datetime(c_df['Date'] + ' ' + c_df['EndTime'])
     c_df['Date'] = to_datetime(c_df['Date'])
     c_df['EndTime'] = to_timedelta(c_df['EndTime'])
 
-    '''split moves to a new df drop columns not needed'''
+    # Split moves to a new df drop columns not needed
     m_df = c_df[c_df.index % 2 == 1]
     m_df = m_df.sort_values('date_time').reset_index().drop(
         columns=['index', 'Date', 'White', 'Black', 'Result', 'WhiteElo',
                  'BlackElo', 'TimeControl', 'EndTime', 'Termination', 'date_time',
                  'Round', 'Event'])
 
-    '''split game information to a new df'''
+    # Split game information to a new df
     d_df = c_df[c_df.index % 2 == 0]
 
     d_df = d_df[['Date', 'White', 'Black', 'Result', 'WhiteElo', 'BlackElo',
@@ -131,7 +122,7 @@ def data_cleaning_1(df):
                  ]].sort_values('date_time').reset_index().drop(columns=[
                      'index', 'date_time'])
 
-    '''Rename all columns to lower case and insert "_" to split words'''
+    # Rename all columns to lower case and insert "_" to split words
     d_df = d_df.rename(columns={
         'Date': 'date', 'White': 'white', 'Black': 'black',
         'Result': 'result', 'WhiteElo': 'white_elo', 'BlackElo': 'black_elo',
@@ -143,7 +134,7 @@ def data_cleaning_1(df):
     d_df['black_elo'] = to_numeric(d_df['black_elo'])
     d_df['color'] = np.where(d_df['white'] == 'TrueMoeG', 1, 0)
 
-    '''drop duplicate rows'''
+    # Drop duplicate rows
     d_df.drop_duplicates(inplace=True)
     m_df.drop_duplicates(inplace=True)
 
@@ -154,8 +145,7 @@ def data_cleaning_2(m_df):
 	'''Fourth function:
 	Input:
 	m_df = Moves df
-	Creates a new df that has time information.
-
+	Creates a new df that has time information and cleans moves df column names.
 	Output:
 	t_df = Moves time df - all the times for moves
 	m_df = Moves df - Fixed column names'''
@@ -187,7 +177,9 @@ def data_cleaning_3(t_df, d_df):
 	Input:
 	t_df = Move times df
 	d_df = Game information df
-	Cleans the times df to fix the games that give extra time after each move'''
+	Cleans the times df to fix the games that give extra time after each move
+	Output:
+	t_df = Moves time df - Fixed times'''
 
     t_df = t_df.apply(to_timedelta, errors='coerce')
     t_df = t_df.apply(to_numeric, errors='coerce')
@@ -210,12 +202,20 @@ def data_cleaning_4(m_df, t_df, d_df):
 	m_df = Moves df
 	t_df = Move times df
 	d_df = Game information df
-	Cleans the times df (t_df) to fix the games that give extra time after each
-	move'''
+	Creates four new df moves and move times for white and black pieces. 
+	Output:
+	wh_m_df = All moves by player with white pieces
+	wh_t_df = All moves time by player with white pieces
+	bl_m_df = All moves by player with black pieces
+	bl_t_df = All moves time by player with black pieces
+	d_df = Game information df - Corrected game times + number of moves
+	t_df = Move times df'''
 
+	# game_time to numeric and copy those to moves time df
     t_df['game_time'] = to_numeric(t_df['game_time'])
     d_df['game_time'] = t_df['game_time']
 
+    # Create four new df moves and move times for white and black pieces
     wh_m_df = m_df[m_df.columns[::2]].copy()
     bl_m_df = m_df[m_df.columns[1::2]].copy()
     wh_t_df = t_df[t_df.columns[::2]].copy()
@@ -224,51 +224,36 @@ def data_cleaning_4(m_df, t_df, d_df):
     wh_t_df = wh_t_df.drop(columns=[wh_t_df.columns[-1]])
     bl_t_df = bl_t_df.drop(columns=[bl_t_df.columns[-1]])
 
+    # Get number of moves per game
     d_df['white_num_moves'] = wh_m_df.count(axis=1)
     d_df['black_num_moves'] = bl_m_df.count(axis=1)
 
+    '''Go through all the columns in the move times df for white and black pieces
+    and subtract the time left with the total allowed time. This gives time per move'''
     for num in wh_t_df.columns:
         wh_t_df[num] = t_df['game_time'] - wh_t_df[num]
     for num in bl_t_df.columns:
         bl_t_df[num] = t_df['game_time'] - bl_t_df[num]
 
-    two_list = []
-    five_list = []
-    i = 0
-    while i < len(t_df):
-        for num in t_df['extra_time']:
-            if num == 2:
-                two_list.append(i)
-                i += 1
-            elif num == 5:
-                five_list.append(i)
-                i += 1
-            else:
-                i += 1
+    # Create two lists: index for games that give +2 sec/move and +5 sec/move
+    two_list = t_df[t_df['extra_time']==2].index.tolist()
+    five_list = t_df[t_df['extra_time']==5].index.tolist()
 
+    # Add 2 seconds to all the moves for games that give +2 sec/move
     for num in two_list:
-        i = 0
-        j = 0
-
-        while i < (len(wh_t_df.columns)):
+        for i in range(len(wh_t_df.columns)-1):
             wh_t_df.iloc[num, i] = wh_t_df.iloc[num, i] + ((i+1) * 2)
-            i += 1
-
-        while j < (len(bl_t_df.columns)):
+        for j in range(len(wh_t_df.columns)-1):
             bl_t_df.iloc[num, j] = wh_t_df.iloc[num, j] + ((j+1) * 2)
-            j += 1
 
+    # Add 5 seconds to all the moves for games that give +5 sec/move
     for num in five_list:
-        i = 0
-        j = 0
-
-        while i < (len(wh_t_df.columns)):
+        for i in range(len(wh_t_df.columns)-1):
             wh_t_df.iloc[num, i] = wh_t_df.iloc[num, i] + ((i+1) * 5)
-            i += 1
-        while j < (len(bl_t_df.columns)):
+        for j in range(len(wh_t_df.columns)-1):
             bl_t_df.iloc[num, j] = wh_t_df.iloc[num, j] + ((j+1) * 5)
-            j += 1
 
+    # Change time values where time is really high
     for num in wh_t_df.columns:
         wh_t_df[num] = np.where(wh_t_df[num] > 5000, 0, wh_t_df[num])
     for num in bl_t_df.columns:
