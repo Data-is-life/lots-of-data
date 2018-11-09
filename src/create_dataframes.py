@@ -263,6 +263,16 @@ def data_cleaning_4(m_df, t_df, d_df):
 
 
 def data_cleaning_5(c_t_df, t_df, d_df, col):
+	'''Seventh function:
+	Input:
+	c_t_df = Black or white pieces moves time df
+	t_df = Move times df
+	d_df = Game information df
+	col = Column name
+	Cleans the moves time df. 
+	Output:
+	tm_df = All moves by player with white pieces'''
+
     tm_df = c_t_df.shift(periods=1, axis=1)
     tm_df = tm_df - c_t_df
     tm_df = -tm_df
@@ -276,6 +286,18 @@ def data_cleaning_5(c_t_df, t_df, d_df, col):
 
 
 def help_func1(m_df):
+	'''Helper function:
+	Input:
+	m_df = Black or white pieces moves
+	Gets castling information. 
+	Output:
+	cast_list = for every game it assigns a value if the player castled.
+				1 if castled King side
+				0 if castled Queen side
+				-1 if didn't castle
+	cast_w_list = if the player castled it gets the move number the player castled
+				  0 if the player didn't castle'''
+
     cast_list = []
     cast_w_list = []
     i = 0
@@ -297,23 +319,39 @@ def help_func1(m_df):
 
 
 def data_cleaning_6(d_df, m_df, bl_m_df, wh_m_df, wh_t_df, bl_t_df):
+	'''Eighth function:
+	Input:
+	d_df = Game information df
+	m_df = Move times df
+	bl_m_df = All moves by player with black pieces
+	wh_m_df = All moves by player with white pieces
+	wh_t_df = All moves time by player with white pieces
+	bl_t_df = All moves time by player with black pieces
+	Adds bunch of information to game information df 
+	Output:
+	d_df = Game information df - bunch of new columns'''
 
+	# Round all times to an integer
     d_df['white_time_used'] = wh_t_df.max(axis=1).apply(
         lambda x: custom_round(x, base=10))
     d_df['black_time_used'] = bl_t_df.max(axis=1).apply(
         lambda x: custom_round(x, base=10))
 
+    # Get the winner and how they won
     d_df['winner'] = d_df['termination'].str.extract(
         '(^[a-zA-Z0-9]+)', expand=False)
     d_df['won_by'] = d_df['termination'].str.extract(
         '([a-zA-Z0-9]+$)', expand=False)
 
+    # Using helper function to get castling information
     cstl_l_bl, cstl_loc_l_bl = help_func1(bl_m_df)
     cstl_l_wh, cstl_loc_l_wh = help_func1(wh_m_df)
 
+    # Get day of the week and day of the month
     d_df['weekday'] = d_df.date.apply(lambda x: x.dayofweek)
     d_df['day'] = d_df.date.apply(lambda x: x.day)
 
+    # result is if the player won or lost. 1.0 = Win, 0.5 = Draw, 0.0 = Loss
     d_df['result'] = np.where(d_df['winner'] == 'TrueMoeG',
                               1.0, (np.where(d_df['winner'] == 'Game', 0.5, 0.0)))
 
@@ -331,17 +369,19 @@ def data_cleaning_6(d_df, m_df, bl_m_df, wh_m_df, wh_t_df, bl_t_df):
     d_df['opp_castled'] = np.where(d_df['color'] == 0, d_df[
         'white_castled_where'], d_df['black_castled_where'])
 
+    # Get total time used by each player and input it in the information df
     d_df['time_used'] = np.where(d_df['color'] == 1, d_df[
         'white_time_used'], d_df['black_time_used'])
     d_df['opp_time_used'] = np.where(d_df['color'] == 0, d_df[
         'white_time_used'], d_df['black_time_used'])
-
     d_df['time_used'] = np.where(d_df['result'] == 1.0, d_df[
         'time_used'], np.where(d_df['won_by'] == 'time', d_df[
             'game_time'], d_df['time_used']))
     d_df['opp_time_used'] = np.where(d_df['result'] == 0.0, d_df[
         'opp_time_used'], np.where(d_df['won_by'] == 'time', d_df[
             'game_time'], d_df['opp_time_used']))
+    
+    # Converting time to numeric for easier calculations
     d_df['end_time'] = to_numeric(d_df['end_time'])/3600000000
     d_df['start_time'] = d_df['end_time'] - \
         (d_df['time_used']+d_df['opp_time_used'])/3.6
@@ -351,9 +391,11 @@ def data_cleaning_6(d_df, m_df, bl_m_df, wh_m_df, wh_t_df, bl_t_df):
     d_df['opp_num_moves'] = np.where(d_df['color'] == 0, d_df[
         'white_num_moves'], d_df['black_num_moves'])
 
+    # Average time per move
     d_df['avg_time'] = d_df['time_used']/d_df['num_moves']
     d_df['opp_avg_time'] = d_df['opp_time_used']/d_df['opp_num_moves']
 
+    # Rounding the time to start of the hour
     d_df['start_time'] = d_df['start_time']//1000
     d_df['end_time'] = d_df['end_time']//1000
 
@@ -364,6 +406,16 @@ def data_cleaning_6(d_df, m_df, bl_m_df, wh_m_df, wh_t_df, bl_t_df):
 
 
 def data_cleaning_7(d_df, wh_tm_df, bl_tm_df):
+	'''Ninth function:
+	Input:
+	d_df = Game information df
+	bl_m_df = All moves by player with black pieces
+	wh_m_df = All moves by player with white pieces
+	Adds bunch of information to game information df 
+	Output:
+	d_df = Game information df - bunch of new columns'''
+
+    # Max time each player to make a move
     d_df['white_max_move'] = wh_tm_df.max(axis=1)
     d_df['black_max_move'] = bl_tm_df.max(axis=1)
 
@@ -372,20 +424,22 @@ def data_cleaning_7(d_df, wh_tm_df, bl_tm_df):
     d_df['opp_max_move'] = np.where(d_df['color'] == 0, d_df[
         'white_max_move'], d_df['black_max_move'])
 
+    # Assign elo to each player
     d_df['post_elo'] = np.where(
         d_df['color'] == 1, d_df['white_elo'], d_df['black_elo'])
     d_df['opp_post_elo'] = np.where(
         d_df['color'] == 0, d_df['white_elo'], d_df['black_elo'])
 
+    # Amount of elo changed in the last game
     d_df['elo_delta'] = d_df['post_elo'] - d_df['post_elo'].shift(1)
-
     d_df['elo'] = d_df['post_elo'].subtract(d_df['elo_delta'])
+    
+    # Chess assigns elo of 1000 to a new member
     d_df['elo'].iloc[0] = 1000
-
     d_df['elo_delta'].iloc[0] = d_df['post_elo'].iloc[0] - d_df['elo'].iloc[0]
-
     d_df['opp_elo'] = d_df['opp_post_elo'].subtract(d_df['elo_delta'])
 
+    # diff is the difference in elo between players
     d_df['diff'] = d_df['post_elo'].subtract(d_df['opp_post_elo'])
 
     d_df = d_df.reset_index().drop(columns=['index'])
@@ -394,6 +448,7 @@ def data_cleaning_7(d_df, wh_tm_df, bl_tm_df):
 
     d_df = d_df.drop([d_df_len-1])
 
+    # Changed stings of how the player won to integers
     d_df['won_by'] = d_df['won_by'].replace([
         'checkmate', 'resignation', 'time', 'material', 'agreement',
         'repetition', 'abandoned', 'stalemate', 'rule'], list(reversed(range(9))))
@@ -402,6 +457,17 @@ def data_cleaning_7(d_df, wh_tm_df, bl_tm_df):
 
 
 def main_cleanup(file_name):
+	'''Tenth function:
+	Input:
+	file_name = Game log from Chess.com
+	
+	Output:
+	ddf_model
+	ddf_analysis
+	ddf_final'''
+
+    # Max time each player to make a move
+
     icd_text = initial_chess_data(file_name)
 
     cdf = chess_data_cleanup(icd_text)
@@ -426,18 +492,21 @@ def main_cleanup(file_name):
 
     ddf3 = data_cleaning_6(ddf2, mdf2, bl_mdf1, wh_mdf1, wh_tdf1, bl_tdf1)
 
-    ddf_final = data_cleaning_7(ddf3, wh_tmdf1, bl_tmdf1)
+    df_final = data_cleaning_7(ddf3, wh_tmdf1, bl_tmdf1)
 
     analysis_labels = ['date', 'day', 'weekday', 'start_time', 'game_time',
                        'color', 'elo', 'opp_elo', 'diff', 'result', 'won_by',
-                       'num_moves', 'opp_num_moves', 'avg_time', 'opp_avg_time',
-                       'castled_on', 'opp_castled_on', 'castled', 'opp_castled',
-                       'time_used', 'opp_time_used', 'max_move', 'opp_max_move']
+                       'num_moves', 'castled', 'opp_castled', 'castled_on', 
+                       'opp_castled_on', 'time_used', 'opp_time_used']
 
     predictions_labels = ['result', 'diff', 'opp_elo', 'elo', 'game_time',
                           'color', 'start_time', 'day', 'weekday']
 
-    ddf_model = ddf_final[predictions_labels]
-    ddf_analysis = ddf_final[analysis_labels]
+    df_model = ddf_final[predictions_labels]
+    df_analysis = ddf_final[analysis_labels]
 
-    return ddf_model, ddf_analysis, ddf_final
+    df_final.to_csv('../data/main_with_all_info.csv')
+    df_model.to_csv('../data/use_for_predictions.csv')
+    df_analysis.to_csv('../data/use_for_analysis.csv')
+
+    return df_model, df_analysis, df_final
