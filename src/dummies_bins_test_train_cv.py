@@ -6,12 +6,15 @@ import pandas as pd
 import numpy as np
 from sklearn.metrics import *
 from sklearn.model_selection import cross_val_score
+from math import ceil
 
 
 def get_Xy_train_test(df, split_min=0.8, split_max=0.85):
     '''Classifer = Classifier created
     df = dataframe for prediction
     split_min = percentage for minimum split %. Default value = 0.8
+    * New: If need an exact number of games to predict, pass an integer
+
     split_max = percentage for highest split %. Default value = 0.85
 
     Drops games that were drawn
@@ -26,31 +29,38 @@ def get_Xy_train_test(df, split_min=0.8, split_max=0.85):
     y = np.array(df['result'])
     print(f'y Shape: {y.shape}')
 
-    bins = list(range(-2000, -399, 100))
-    bins.extend(list(range(-390, -199, 10)))
-    bins.extend(list(range(-195, 196, 5)))
-    bins.extend(list(range(200, 401, 10)))
-    bins.extend(list(range(500, 2001, 100)))
+    dif_bins = list(range(-1000, -399, 100))
+    dif_bins.extend(list(range(-390, -199, 10)))
+    dif_bins.extend(list(range(-195, 196, 5)))
+    dif_bins.extend(list(range(200, 401, 10)))
+    dif_bins.extend(list(range(500, 1001, 100)))
 
-    labels = list(range(len(bins) - 1))
+    dif_labels = list(range(len(dif_bins) - 1))
 
-    df['diff_bin'] = pd.cut(df['diff'], bins=bins, labels=labels)
+    df['diff_bin'] = pd.cut(df['diff'], bins=dif_bins, labels=dif_labels)
+
+    df['start_time_bin'] = pd.cut(df['start_time'], bins=12, labels=False)
 
     numeric_predictors = ['color', 'diff_bin',
-                          'game_time', 'start_time', 'weekday']
+                          'game_time', 'start_time_bin', 'weekday']
     df = df[numeric_predictors]
 
     df = pd.get_dummies(df, prefix='gt', drop_first=True,
                         columns=['game_time'])
     df = pd.get_dummies(df, prefix='st', drop_first=True,
-                        columns=['start_time'])
+                        columns=['start_time_bin'])
     df = pd.get_dummies(df, prefix='wd', drop_first=True, columns=['weekday'])
 
     X = df.values
     print(f'X Shape: {X.shape}')
 
-    rand_split = np.random.randint(
-        int(len(X) * split_min), int(len(X) * split_max))
+    if split_min < 1:
+
+        rand_split = np.random.randint(
+            int(len(X) * split_min), int(len(X) * split_max))
+
+    else:
+        rand_split = ceil(split_min)
 
     X_train = X[:rand_split]
     y_train = y[:rand_split]
@@ -62,7 +72,7 @@ def get_Xy_train_test(df, split_min=0.8, split_max=0.85):
     print(f'y_train Shape: {y_train.shape}')
     print(f'y_test Shape: {y_test.shape}')
 
-    return X_train, X_test, y_train, y_test
+    return X_train, X_test, y_train, y_test, X, y, df
 
 
 def cross_validation_process(classifier, X_test, y_test, cv=5, scoring='average_precision'):
@@ -97,20 +107,23 @@ def cross_validation_process(classifier, X_test, y_test, cv=5, scoring='average_
        explained_variance, neg_mean_absolute_error, neg_mean_squared_error, 
        neg_mean_squared_log_error, neg_median_absolute_error, r2'''
 
-    scores = cross_val_score(
-        classifier, X_test, y_test, cv=cv, scoring=scoring)
+    scores = cross_val_score(classifier, X_test, y_test, cv=cv, scoring=scoring)
+    y_pred = classifier.predict(X_test)
+    cm = confusion_matrix(y_test, y_pred)
+    pred_acc = round(classifier.score(X_test, y_test) * 100, 2)
+
     print(f'Average_Accuracy({scoring})={round(scores.mean()*100,2)}%')
     print(f'Standard_Deviation={round(scores.std(),3)}')
-    print(f'Scores({scoring})={scores.round(3)}')
-    try:
-        print(f'Feature importance = {classifier.feature_importances_}')
-    except:
-        print("No Feature Importances")
-    y_pred = classifier.predict(X_test)
+    print(f'True_Score(Mean/SD)={round(scores.mean()/scores.std(),3)}\n')
+    print(f'Prediction_Confusion_Matrix=[{cm[0][0]}|{cm[0][1]}]:[{cm[1][0]}|{cm[1][1]}]')
+    print(f'Prediction_Accuracy={pred_acc}%')
+    # print(f'Scores({scoring})={scores.round(3)}')    
+    # try:
+    #     print(f'Feature importance = {classifier.feature_importances_}')
+    # except:
+    #     print("No Feature Importances")
     # print(
     # f'\nClassification Report:\n{classification_report(y_test, y_pred)}\n')
-    cm = confusion_matrix(y_test, y_pred)
-    print(f'Prediction_Confusion_Matrix=\n{cm}')
-    print(f'Prediction_Accuracy={round(classifier.score(X_test, y_test)*100, 2)}%')
-    # print(f'-----------------------------------------------------------------------')
+
+    # print('-----------------------------------------------------------------------')
     return scores

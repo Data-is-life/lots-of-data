@@ -466,45 +466,55 @@ def main_cleanup(file_name):
     df_analysis = Use for analysis
     df_final = All the game information'''
 
-    # Max time each player to make a move
-
+    # First function
     icd_text = initial_chess_data(file_name)
 
+    # Second function
     cdf = chess_data_cleanup(icd_text)
 
+    # Just to create a file with all the moves and times
     adf = cdf[cdf.index % 2 == 0]
-
     adf.to_csv('../data/moves_initial.csv')
-
+    # Third function
     mdf1, ddf1 = data_cleaning_1(cdf)
 
+    # Fourth function
     mdf2, tdf1 = data_cleaning_2(mdf1)
 
+    # No more need for moves. Saving it to a file
     mdf2.to_csv('../data/moves.csv')
 
+    # Fifth function
     tdf2 = data_cleaning_3(tdf1, ddf1)
 
+    # Sixth function
     wh_mdf1, wh_tdf1, bl_mdf1, bl_tdf1, ddf2, tdf3 = data_cleaning_4(
         mdf2, tdf2, ddf1)
 
+    # Seventh function
     wh_tmdf1 = data_cleaning_5(wh_tdf1, tdf3, ddf2, '001a')
     bl_tmdf1 = data_cleaning_5(bl_tdf1, tdf3, ddf2, '001b')
 
+    # Eighth function
     ddf3 = data_cleaning_6(ddf2, mdf2, bl_mdf1, wh_mdf1, wh_tdf1, bl_tdf1)
 
+    # Ninth function
     df_final = data_cleaning_7(ddf3, wh_tmdf1, bl_tmdf1)
 
+    # Using the following columns to run analysis
     analysis_labels = ['date', 'day', 'weekday', 'start_time', 'game_time',
                        'color', 'elo', 'opp_elo', 'diff', 'result', 'won_by',
                        'num_moves', 'castled', 'opp_castled', 'castled_on', 
                        'opp_castled_on', 'time_used', 'opp_time_used']
 
+    # Using the following columns for running prediction models
     predictions_labels = ['result', 'diff', 'opp_elo', 'elo', 'game_time',
                           'color', 'start_time', 'day', 'weekday']
 
     df_model = df_final[predictions_labels]
     df_analysis = df_final[analysis_labels]
 
+    # Save the files
     df_final.to_csv('../data/main_with_all_info.csv')
     df_model.to_csv('../data/use_for_predictions.csv')
     df_analysis.to_csv('../data/use_for_analysis.csv')
