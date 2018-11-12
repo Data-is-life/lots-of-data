@@ -2,11 +2,9 @@
 
 # # Analysis:
 
-from itertools import islice
 import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
-get_ipython().run_line_magic('matplotlib', 'inline')
 plt.style.use('seaborn-whitegrid')
 
 
@@ -24,7 +22,8 @@ def graph_for_start_time(df):
     df_mean_by_start_time = df.groupby('start_time').mean()
     df_mean_by_start_time.reset_index(inplace=True)
     df_mean_by_start_time.plot.scatter(x='start_time', y='result',
-                                       title='Result by Time of Day', legend=False)
+                                       title='Result by Time of Day', 
+                                       legend=False)
     plt.ylim(0.4, 0.625)
     plt.ylabel('Winning Ratio')
     plt.xlabel('Starting Time')
@@ -82,14 +81,14 @@ def graph_for_day_of_week(df):
 def graph_for_where_castled(df):
     df_mean_by_castled = df.groupby('castled').mean()
     df_mean_by_castled.reset_index(inplace=True)
-    df_mean_by_castled.plot.scatter(x='castled', y='result', marker='o',
-                                    title='Result by Where Castled', legend=False)
+    df_mean_by_castled.plot.scatter(x='castled', y='result', legend=False,
+                                    title='Result by Where Castled')
     plt.ylabel('Winning Ratio')
     plt.xlabel('Castled')
     df_count_by_castled = df.groupby('castled').count()
     df_count_by_castled.reset_index(inplace=True)
-    df_count_by_castled.plot.scatter(x='castled', y='result', marker='o',
-                                     title='# of Games for Where Castled', legend=False)
+    df_count_by_castled.plot.scatter(x='castled', y='result', legend=False,
+                                     title='# of Games for Where Castled')
     plt.ylabel('# of Games')
     plt.xlabel('Castled')
     plt.show()
@@ -98,15 +97,17 @@ def graph_for_where_castled(df):
 def graph_for_where_opp_castled(df):
     df_mean_by_opp_castled = df.groupby('opp_castled').mean()
     df_mean_by_opp_castled.reset_index(inplace=True)
-    df_mean_by_opp_castled.plot.scatter(x='opp_castled', y='result', marker='o',
-                                        title='Result by Where Opp Castled', legend=False)
+    df_mean_by_opp_castled.plot.scatter(x='opp_castled', y='result',
+                                        title='Result by Where Opp Castled',
+                                        legend=False)
     plt.ylim(0.44, 0.58)
     plt.ylabel('Winning Ratio')
     plt.xlabel('Opposition Castled')
     df_count_by_opp_castled = df.groupby('opp_castled').count()
     df_count_by_opp_castled.reset_index(inplace=True)
-    df_count_by_opp_castled.plot.scatter(x='opp_castled', y='result', marker='o',
-                                         title='# of Games for Where Opp Castled', legend=False)
+    df_count_by_opp_castled.plot.scatter(x='opp_castled', y='result',
+                                         title='# of Games for Where Opp Castled',
+                                         legend=False)
     plt.ylabel('# of Games')
     plt.xlabel('Opposition Castled')
     plt.show()
@@ -115,15 +116,17 @@ def graph_for_where_opp_castled(df):
 def graph_for_timed_game(df):
     df_mean_by_game_time = df.groupby('game_time').mean()
     df_mean_by_game_time.reset_index(inplace=True)
-    df_mean_by_game_time.plot.scatter(x='game_time', y='result', marker='o',
-                                      title='Result by Game Time', legend=False)
+    df_mean_by_game_time.plot.scatter(x='game_time', y='result',
+                                      title='Result by Game Time',
+                                      legend=False)
     plt.ylim(0.4, 0.54)
     plt.ylabel('Winning Ratio')
     plt.xlabel('Game Time')
     df_count_by_game_time = df.groupby('game_time').count()
     df_count_by_game_time.reset_index(inplace=True)
-    df_count_by_game_time.plot.scatter(x='game_time', y='result', marker='o',
-                                       title='# of Games for Each Game Time', legend=False)
+    df_count_by_game_time.plot.scatter(x='game_time', y='result',
+                                       title='# of Games for Each Game Time',
+                                       legend=False)
     plt.ylabel('# of Games')
     plt.xlabel('Game Time')
     plt.show()
@@ -244,7 +247,8 @@ def graph_for_num_moves(df):
     plt.xlabel('Number of Moves')
     df_count_by_num_moves = df.groupby('bin_num_moves').count()
     df_count_by_num_moves.reset_index(inplace=True)
-    df_count_by_num_moves.plot.scatter(x='bin_num_moves', y='result', legend=False,
+    df_count_by_num_moves.plot.scatter(x='bin_num_moves', y='result',
+                                       legend=False,
                                        title='# of Games by Number of Moves')
     plt.ylabel('# of Games')
     plt.xlabel('Number of Moves')
@@ -254,14 +258,16 @@ def graph_for_num_moves(df):
 def graph_for_castle_on_move_num(df):
     df_mean_by_castled_on = df.groupby('castled_on').mean()
     df_mean_by_castled_on.reset_index(inplace=True)
-    df_mean_by_castled_on.plot.scatter(x='castled_on', y='result', legend=False,
+    df_mean_by_castled_on.plot.scatter(x='castled_on', y='result',
+                                       legend=False,
                                        title='Result by the Move # of Castling (0 = not castling)')
     plt.ylim((.35, 1.05))
     plt.ylabel('Winning Ratio')
     plt.xlabel('Move # of Castling')
     df_count_by_castled_on = df.groupby('castled_on').count()
     df_count_by_castled_on.reset_index(inplace=True)
-    df_count_by_castled_on.plot.scatter(x='castled_on', y='result', legend=False,
+    df_count_by_castled_on.plot.scatter(x='castled_on', y='result',
+                                        legend=False,
                                         title='# of Games by the Move # of Castling (0 = not castling)')
     plt.ylim((-5, 205))
     plt.ylabel('# of Games')
@@ -272,14 +278,17 @@ def graph_for_castle_on_move_num(df):
 def graph_for_opp_castle_on_move_num(df):
     df_mean_by_opp_castled_on = df.groupby('opp_castled_on').mean()
     df_mean_by_opp_castled_on.reset_index(inplace=True)
-    df_mean_by_opp_castled_on.plot.scatter(x='opp_castled_on', y='result', ylim=(0.25, 0.75),
+    df_mean_by_opp_castled_on.plot.scatter(x='opp_castled_on', y='result',
                                            title='Result by the Move # of Opp Castling')
+    plt.ylim(0.25, 0.75)
     plt.ylabel('Winning Ratio')
     plt.xlabel('Move # of Opposition Castling')
     df_count_by_opp_castled_on = df.groupby('opp_castled_on').count()
     df_count_by_opp_castled_on.reset_index(inplace=True)
-    df_count_by_opp_castled_on.plot.scatter(x='opp_castled_on', y='result', legend=False, ylim=(-5, 140),
+    df_count_by_opp_castled_on.plot.scatter(x='opp_castled_on', y='result',
+                                            legend=False,
                                             title='# of Games by the Move # of Opp Castling')
+    plt.ylim(-5, 140)
     plt.ylabel('# of Games')
     plt.xlabel('Move # of Opposition Castling')
     plt.show()
@@ -288,7 +297,7 @@ def graph_for_opp_castle_on_move_num(df):
 def graph_for_time_used(df):
     df_mean_by_time_used = df.groupby('time_used').mean()
     df_mean_by_time_used.reset_index(inplace=True)
-    df_mean_by_time_used.plot.scatter(x='time_used', y='result', marker='o',
+    df_mean_by_time_used.plot.scatter(x='time_used', y='result',
                                       title='Result by the Amount of Time Used (in %)')
     plt.ylabel('Winning Ratio')
     plt.xlabel('Amount of Time Used(%)')
@@ -311,7 +320,8 @@ def graph_for_opp_time_used(df):
     plt.xlabel('Amount of Time Used by Opposition(%)')
     df_count_by_opp_time_used = df.groupby('opp_time_used').count()
     df_count_by_opp_time_used.reset_index(inplace=True)
-    df_count_by_opp_time_used.plot.scatter(x='opp_time_used', y='result', legend=False,
+    df_count_by_opp_time_used.plot.scatter(x='opp_time_used', y='result',
+                                           legend=False,
                                            title='# of Games by the Amount of Time Used by Opp')
     plt.ylim((0, 70))
     plt.ylabel('# of Games')

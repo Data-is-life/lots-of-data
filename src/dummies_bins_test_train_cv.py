@@ -75,7 +75,8 @@ def get_Xy_train_test(df, split_min=0.8, split_max=0.85):
     return X_train, X_test, y_train, y_test, X, y, df
 
 
-def cross_validation_process(classifier, X_test, y_test, cv=5, scoring='average_precision'):
+def cross_validation_process(classifier, X_test, y_test, cv=5,
+                             scoring='average_precision'):
     '''Classifer = Classifier created
        X_test = X_test
        y_test = y_test
@@ -95,8 +96,9 @@ def cross_validation_process(classifier, X_test, y_test, cv=5, scoring='average_
        Other scorings:
 
        Classification:
-       accuracy, balanced_accuracy, average_precision, brier_score_loss, f1, f1_micro,
-       f1_macro, f1_weighted, f1_samples, neg_log_loss, precision, recall, roc_auc
+       accuracy, balanced_accuracy, average_precision, brier_score_loss, f1,
+       f1_micro, f1_macro, f1_weighted, f1_samples, neg_log_loss, precision,
+       recall, roc_auc
 
        Clustering:
        adjusted_mutual_info_score, adjusted_rand_score, completeness_score,
@@ -104,10 +106,11 @@ def cross_validation_process(classifier, X_test, y_test, cv=5, scoring='average_
        normalized_mutual_info_score, v_measure_score
 
        Regression:
-       explained_variance, neg_mean_absolute_error, neg_mean_squared_error, 
+       explained_variance, neg_mean_absolute_error, neg_mean_squared_error,
        neg_mean_squared_log_error, neg_median_absolute_error, r2'''
 
-    scores = cross_val_score(classifier, X_test, y_test, cv=cv, scoring=scoring)
+    scores = cross_val_score(classifier, X_test, y_test, cv=cv,
+                             scoring=scoring)
     y_pred = classifier.predict(X_test)
     cm = confusion_matrix(y_test, y_pred)
     pred_acc = round(classifier.score(X_test, y_test) * 100, 2)
@@ -117,7 +120,7 @@ def cross_validation_process(classifier, X_test, y_test, cv=5, scoring='average_
     print(f'True_Score(Mean/SD)={round(scores.mean()/scores.std(),3)}\n')
     print(f'Prediction_Confusion_Matrix=[{cm[0][0]}|{cm[0][1]}]:[{cm[1][0]}|{cm[1][1]}]')
     print(f'Prediction_Accuracy={pred_acc}%')
-    # print(f'Scores({scoring})={scores.round(3)}')    
+    # print(f'Scores({scoring})={scores.round(3)}')
     # try:
     #     print(f'Feature importance = {classifier.feature_importances_}')
     # except:

@@ -2,12 +2,9 @@
 # Date: 11/08/2018
 # Git-Hub: Data-is-Life
 
-import pandas as pd
 import numpy as np
-import re
 from ast import literal_eval
-from datetime import datetime
-from pandas import *
+from pandas import DataFrame, to_datetime
 
 '''All functions I used to clean up game log from Chess.com'''
 
@@ -35,7 +32,7 @@ def initial_chess_data(filename):
 def chess_data_cleanup(chess_text):
     '''Second function:
     Input = All game information as a text
-    Creates a df where one row is for game information, the following row 
+    Creates a df where one row is for game information, the following row
     is moves in that game.
     Output = df with game information and moves'''
 
@@ -93,7 +90,7 @@ def data_cleaning_1(df):
     '''Third function:
     Input:
     df = df with all information
-    creates two dfs. First df is all games information. Second df is for all 
+    creates two dfs. First df is all games information. Second df is for all
     the moves in those games.
     Output:
     m_df = moves df with all the moves
@@ -132,8 +129,8 @@ def data_cleaning_1(df):
     d_df.rename(columns={
         'Date': 'date', 'White': 'white', 'Black': 'black',
         'Result': 'result', 'WhiteElo': 'white_elo', 'BlackElo': 'black_elo',
-        'TimeControl': 'game_time', 'EndTime': 'end_time', 'Termination': 'termination'
-    }, inplace=True)
+        'TimeControl': 'game_time', 'EndTime': 'end_time',
+        'Termination': 'termination'}, inplace=True)
 
     d_df.loc[:, 'num_moves'] = m_df.count(axis=1)
     d_df.loc[:, 'white_elo'] = to_numeric(d_df['white_elo'])
@@ -151,7 +148,7 @@ def data_cleaning_2(m_df):
     '''Fourth function:
     Input:
     m_df = Moves df
-    Creates a new df that has time information and cleans moves df column names.
+    Creates a new df that has time information and cleans moves df column names
     Output:
     t_df = Moves time df - all the times for moves
     m_df = Moves df - Fixed column names'''
@@ -208,7 +205,7 @@ def data_cleaning_4(m_df, t_df, d_df):
     m_df = Moves df
     t_df = Move times df
     d_df = Game information df
-    Creates four new df moves and move times for white and black pieces. 
+    Creates four new df moves and move times for white and black pieces.
     Output:
     wh_m_df = All moves by player with white pieces
     wh_t_df = All moves time by player with white pieces
@@ -234,8 +231,9 @@ def data_cleaning_4(m_df, t_df, d_df):
     d_df.loc[:, 'white_num_moves'] = wh_m_df.count(axis=1)
     d_df.loc[:, 'black_num_moves'] = bl_m_df.count(axis=1)
 
-    '''Go through all the columns in the move times df for white and black pieces
-    and subtract the time left with the total allowed time. This gives time per move'''
+    '''Go through all the columns in the move times df for white and black
+    pieces and subtract the time left with the total allowed time. This gives
+    time per move'''
     for num in wh_t_df.columns:
         wh_t_df.loc[:, num] = t_df['game_time'] - wh_t_df[num]
     for num in bl_t_df.columns:
@@ -275,7 +273,7 @@ def data_cleaning_5(c_t_df, t_df, d_df, col):
     t_df = Move times df
     d_df = Game information df
     col = Column name
-    Cleans the moves time df. 
+    Cleans the moves time df.
     Output:
     tm_df = All moves by player with white pieces'''
 
@@ -295,13 +293,14 @@ def help_func1(m_df, d_df):
     '''Helper function:
     Input:
     m_df = Black or white pieces moves
-    Gets castling information. 
+    Gets castling information.
     Output:
     cast_list = for every game it assigns a value if the player castled.
                 1 if castled King side
                 0 if castled Queen side
                 -1 if didn't castle
-    cast_w_list = if the player castled it gets the move number the player castled
+    cast_w_list = if the player castled it gets the move number the player
+                  castled
                   0 if the player didn't castle'''
 
     cast_list = []
@@ -329,7 +328,7 @@ def data_cleaning_6(d_df, m_df, bl_m_df, wh_m_df, wh_t_df, bl_t_df):
     wh_m_df = All moves by player with white pieces
     wh_t_df = All moves time by player with white pieces
     bl_t_df = All moves time by player with black pieces
-    Adds bunch of information to game information df 
+    Adds bunch of information to game information df
     Output:
     d_df = Game information df - bunch of new columns'''
 
@@ -355,7 +354,8 @@ def data_cleaning_6(d_df, m_df, bl_m_df, wh_m_df, wh_t_df, bl_t_df):
 
     # result is if the player won or lost. 1.0 = Win, 0.5 = Draw, 0.0 = Loss
     d_df.loc[:, 'result'] = np.where(d_df['winner'] == 'TrueMoeG',
-                                     1.0, (np.where(d_df['winner'] == 'Game', 0.5, 0.0)))
+                                     1.0, (np.where(d_df['winner'] == 'Game',
+                                                    0.5, 0.0)))
 
     d_df.loc[:, 'white_castled_on'] = cstl_l_wh
     d_df.loc[:, 'black_castled_on'] = cstl_l_bl
@@ -416,7 +416,7 @@ def data_cleaning_7(d_df, wh_tm_df, bl_tm_df):
     d_df = Game information df
     bl_m_df = All moves by player with black pieces
     wh_m_df = All moves by player with white pieces
-    Adds bunch of information to game information df 
+    Adds bunch of information to game information df
     Output:
     d_df = Game information df - bunch of new columns'''
 
