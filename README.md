@@ -45,6 +45,7 @@ The repository has the following structure.
 
 ```
 ├── data
+│   ├── dest.pgn
 │   ├── main_with_all_info.csv
 │   ├── moves.csv
 │   ├── moves_initial.csv
@@ -55,7 +56,10 @@ The repository has the following structure.
 ├── README.md
 └── src
     ├── all_classification_models.ipynb
+    ├── all_classification_models.py
+    ├── analysis_functions.py
     ├── Chess_analysis.ipynb
+    ├── chess_analysis.py
     ├── Chess_ann.ipynb
     ├── Chess_clean_data.ipynb
     ├── Chess_rnn.ipynb
@@ -70,7 +74,6 @@ The repository has the following structure.
     │   └── Unused Chess comands.txt
     ├── scatter_matrix.png
     └── Score.ipynb
-
 ```
 ## Tools used so far:
 
