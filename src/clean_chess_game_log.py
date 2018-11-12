@@ -291,7 +291,7 @@ def data_cleaning_5(c_t_df, t_df, d_df, col):
     return tm_df
 
 
-def help_func1(m_df):
+def help_func1(m_df, d_df):
     '''Helper function:
     Input:
     m_df = Black or white pieces moves
@@ -306,21 +306,17 @@ def help_func1(m_df):
 
     cast_list = []
     cast_w_list = []
-    i = 0
-    while i < (len(m_df)):
+    for i in range(len(d_df)):
         a = list(m_df.iloc[i])
         if "O-O" in a:
             cast_list.append(a.index("O-O")+1)
             cast_w_list.append(1)
-            i += 1
         elif "O-O-O" in a:
             cast_list.append(a.index("O-O-O")+1)
             cast_w_list.append(0)
-            i += 1
         else:
             cast_list.append(0)
             cast_w_list.append(-1)
-            i += 1
     return cast_list, cast_w_list
 
 
@@ -350,8 +346,8 @@ def data_cleaning_6(d_df, m_df, bl_m_df, wh_m_df, wh_t_df, bl_t_df):
         '([a-zA-Z0-9]+$)', expand=False)
 
     # Using helper function to get castling information
-    cstl_l_bl, cstl_loc_l_bl = help_func1(bl_m_df)
-    cstl_l_wh, cstl_loc_l_wh = help_func1(wh_m_df)
+    cstl_l_bl, cstl_loc_l_bl = help_func1(bl_m_df, d_df)
+    cstl_l_wh, cstl_loc_l_wh = help_func1(wh_m_df, d_df)
 
     # Get day of the week and day of the month
     d_df.loc[:, 'weekday'] = d_df.date.apply(lambda x: x.dayofweek)
@@ -361,18 +357,18 @@ def data_cleaning_6(d_df, m_df, bl_m_df, wh_m_df, wh_t_df, bl_t_df):
     d_df.loc[:, 'result'] = np.where(d_df['winner'] == 'TrueMoeG',
                                      1.0, (np.where(d_df['winner'] == 'Game', 0.5, 0.0)))
 
-    d_df.loc[:, 'white_castled_on'] = pd.Series(cstl_l_wh)
-    d_df.loc[:, 'black_castled_on'] = pd.Series(cstl_l_bl)
-    d_df.loc[:, 'white_castled_where'] = pd.Series(cstl_loc_l_wh)
-    d_df.loc[:, 'black_castled_where'] = pd.Series(cstl_loc_l_bl)
+    d_df.loc[:, 'white_castled_on'] = cstl_l_wh
+    d_df.loc[:, 'black_castled_on'] = cstl_l_bl
+    d_df.loc[:, 'white_castled_where'] = cstl_loc_l_wh
+    d_df.loc[:, 'black_castled_where'] = cstl_loc_l_bl
 
     d_df.loc[:, 'castled_on'] = np.where(d_df['color'] == 1, d_df[
         'white_castled_on'], d_df['black_castled_on'])
-    d_df.loc[:, 'opp_castled_on'] = np.where(d_df['color'] == 0, d_df[
+    d_df.loc[:, 'opp_castled_on'] = np.where(d_df['color'] != 1, d_df[
         'white_castled_on'], d_df['black_castled_on'])
     d_df.loc[:, 'castled'] = np.where(d_df['color'] == 1, d_df[
         'white_castled_where'], d_df['black_castled_where'])
-    d_df.loc[:, 'opp_castled'] = np.where(d_df['color'] == 0, d_df[
+    d_df.loc[:, 'opp_castled'] = np.where(d_df['color'] != 1, d_df[
         'white_castled_where'], d_df['black_castled_where'])
 
     # Get total time used by each player and input it in the information df
