@@ -4,7 +4,7 @@
 
 import numpy as np
 from ast import literal_eval
-from pandas import DataFrame, to_datetime
+from pandas import DataFrame, to_datetime, to_timedelta, to_numeric
 
 '''All functions I used to clean up game log from Chess.com'''
 
