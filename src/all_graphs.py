@@ -7,6 +7,47 @@ from pandas.plotting import scatter_matrix
 plt.style.use('seaborn-whitegrid')
 
 
+def get_graph_df(file_name):
+
+    df = pd.read_csv(file_name)
+    df.drop(columns=['Unnamed: 0'], inplace=True)
+
+    df.loc[:, 'time_used'] = round((df['time_used'] / df['game_time']) * 100)
+    df.loc[:, 'opp_time_used'] = round(
+        (df['opp_time_used'] / df['game_time']) * 100)
+
+    df = df[df['time_used'] <= 100].copy()
+    df = df[df['opp_time_used'] <= 100].copy()
+
+    bin_opp_elo = [650, 1050, 1150, 1250, 1350, 1450, 1650, 1750, 1850]
+    bin_opp_elo.extend(list(range(660, 1041, 10)))
+    bin_opp_elo = sorted(bin_opp_elo)
+
+    bin_diff = [-500, -400, -300, -200, -100, 100, 200, 300, 400, 500, 600]
+    bin_diff.extend(list(range(-90, 91, 5)))
+    bin_diff = sorted(bin_diff)
+
+    df.loc[:, 'bin_elo'] = pd.cut(x=df.elo, bins=list(
+        range(650, 1051, 10)), labels=list(range(650, 1041, 10))).astype(int)
+
+    df.loc[:, 'bin_opp_elo'] = pd.cut(
+        x=df.opp_elo, bins=bin_opp_elo, labels=bin_opp_elo[:-1]).astype(float)
+
+    df.loc[:, 'bin_diff'] = pd.cut(x=df['diff'], bins=bin_diff,
+                                   labels=bin_diff[:-1]).astype(float)
+
+    df.loc[:, 'bin_num_moves'] = pd.cut(x=df.num_moves, bins=list(
+        range(0, 151, 5)), labels=list(range(0, 146, 5))).astype(float)
+
+    df.loc[:, 'bin_time_used'] = pd.cut(x=df.time_used, bins=list(
+        range(0, 101, 5)), labels=list(range(0, 96, 5))).astype(float)
+
+    df.loc[:, 'bin_opp_time_used'] = pd.cut(x=df.opp_time_used, bins=list(
+        range(0, 101, 5)), labels=list(range(0, 96, 5))).astype(float)
+
+    return df
+
+
 def graph_start_time(df):
     df_mean_by_start_time = df.groupby('start_time').mean()
     df_mean_by_start_time.reset_index(inplace=True)
@@ -371,4 +412,55 @@ def opp_move_num_castled(df):
     plt.yticks(ticks=np.arange(0, 136, step=15))
     plt.show()
 
-def 
+
+def result_by_time_used(df):
+    df_mean_by_time_used = df.groupby('time_used').mean()
+    df_mean_by_time_used.reset_index(inplace=True)
+    df_count_by_time_used = df.groupby('time_used').count()
+    df_count_by_time_used.reset_index(inplace=True)
+
+    df_mean_by_time_used.plot.scatter(x='time_used', y='result', legend=False)
+    plt.title('Result by the Amount of Time Used (in %)')
+    plt.xlabel('Amount of Time Used(%)')
+    plt.xlim(-1, 101)
+    plt.xticks(ticks=np.arange(0, 101, step=20))
+    plt.ylabel('Winning Ratio')
+    plt.ylim((-.01, 1.01))
+    plt.yticks(ticks=np.arange(0, 1.01, step=0.1))
+    df_count_by_time_used.plot.scatter(x='time_used', y='result', legend=False)
+    plt.title('# of Games by the Amount of Time Used (in %)')
+    plt.xlabel('Amount of Time Used(%)')
+    plt.xlim(-1, 101)
+    plt.xticks(ticks=np.arange(0, 101, step=20))
+    plt.ylabel('# of Games')
+    plt.ylim((-1, 70))
+    plt.yticks(ticks=np.arange(0, 71, step=10))
+    plt.show()
+
+
+def result_by_opp_time_used(df):
+    df_mean_by_opp_time_used = df.groupby('opp_time_used').mean()
+    df_mean_by_opp_time_used.reset_index(inplace=True)
+    df_count_by_opp_time_used = df.groupby('opp_time_used').count()
+    df_count_by_opp_time_used.reset_index(inplace=True)
+
+    df_mean_by_opp_time_used.plot.scatter(
+        x='opp_time_used', y='result', legend=False)
+    plt.title('Result by the Amount of Time Used by Opposition(in %)')
+    plt.xlabel('Amount of Time Used by Opposition(%)')
+    plt.xlim(-1, 101)
+    plt.xticks(ticks=np.arange(0, 101, step=20))
+    plt.ylabel('Winning Ratio')
+    plt.ylim((.19, .9))
+    plt.yticks(ticks=np.arange(.2, .91, step=0.1))
+
+    df_count_by_opp_time_used.plot.scatter(
+        x='opp_time_used', y='result', legend=False)
+    plt.title('# of Games by the Amount of Time Used by Opposition(in %)')
+    plt.xlabel('Amount of Time Used by Opposition(%)')
+    plt.xlim(-1, 101)
+    plt.xticks(ticks=np.arange(0, 100, step=20))
+    plt.ylabel('# of Games')
+    plt.ylim((0, 70))
+    plt.yticks(ticks=np.arange(0, 71, step=10))
+    plt.show()
