@@ -1,12 +1,3 @@
-
-# coding: utf-8
-
-# # Running all Classification Models to get the best predictions
-# ## Then, moving on to Neural Networks to get "Better Predictions"
-
-# In[1]:
-
-
 import pandas as pd
 from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
 from sklearn.discriminant_analysis import QuadraticDiscriminantAnalysis

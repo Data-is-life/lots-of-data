@@ -1,9 +1,6 @@
-from itertools import islice
-from matplotlib import cm
 import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
-from pandas.plotting import scatter_matrix
 plt.style.use('seaborn-whitegrid')
 
 
@@ -60,12 +57,12 @@ def graph_start_time(df):
     plt.xlim(-.25, 24)
     plt.xticks(ticks=np.arange(0, 25, step=4))
     plt.ylabel('Winning Ratio')
-    plt.ylim(0.4, 0.600)
-    plt.yticks(ticks=np.arange(0.4, 0.601, step=0.02))
+    plt.ylim(0.41, 0.610)
+    plt.yticks(ticks=np.arange(0.41, 0.611, step=0.01))
 
     df_count_by_start_time.plot.scatter(x='start_time', y='result',
                                         legend=False)
-    plt.title('Result by Time of Day')
+    plt.title('# of Games by Time of Day')
     plt.xlabel('Starting Time')
     plt.xlim(-.25, 24)
     plt.xticks(ticks=np.arange(0, 25, step=4))
@@ -143,13 +140,13 @@ def castled_or_not(df):
     plt.yticks(ticks=np.arange(0.46, 0.516, step=0.005))
 
     df_count_by_castled.plot.scatter(x='castled', y='result', legend=False)
-    plt.title('# of Games for Castling')
+    plt.title('# of Games by Castling')
     plt.xlabel('Castled')
     plt.xlim(-1.02, 1.02)
     plt.xticks(ticks=[-1, 0, 1], labels=['DNC', 'Queen-side', 'King-side'])
     plt.ylabel('# of Games')
-    plt.ylim(200, 1600)
-    plt.yticks(ticks=np.arange(200, 1700, step=200))
+    plt.ylim(200, 1500)
+    plt.yticks(ticks=np.arange(200, 1600, step=100))
 
     plt.show()
 
@@ -232,8 +229,8 @@ def result_elo(df):
     df_mean_by_elo.plot.scatter(x='bin_elo', y='result', legend=False)
     plt.title('Result by ELO')
     plt.xlabel('ELO')
-    plt.xlim(660, 1050)
-    plt.xticks(ticks=np.arange(660, 1051, step=30))
+    plt.xlim(660, 1060)
+    plt.xticks(ticks=np.arange(660, 1061, step=40))
     plt.ylabel('Winning Ratio')
     plt.ylim(0.25, 0.7)
     plt.yticks(ticks=np.arange(0.25, 0.71, step=0.05))
@@ -241,8 +238,8 @@ def result_elo(df):
     df_count_by_elo.plot.scatter(x='bin_elo', y='result', legend=False)
     plt.title('# of Games by ELO')
     plt.xlabel('ELO')
-    plt.xlim(660, 1050)
-    plt.xticks(ticks=np.arange(660, 1051, step=30))
+    plt.xlim(660, 1060)
+    plt.xticks(ticks=np.arange(660, 1061, step=40))
     plt.ylabel('# of Games')
     plt.ylim(-1, 150)
     plt.yticks(ticks=np.arange(0, 151, step=15))
