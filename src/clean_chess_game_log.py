@@ -12,7 +12,7 @@ from pandas import DataFrame, to_datetime, to_timedelta, to_numeric
 def custom_round(x, base=20):
     '''Helps to round digits'''
 
-    return int(base * round(float(x)/base))
+    return int(base * round(float(x) / base))
 
 
 def initial_chess_data(filename):
@@ -245,17 +245,17 @@ def data_cleaning_4(m_df, t_df, d_df):
 
     # Add 2 seconds to all the moves for games that give +2 sec/move
     for num in two_list:
-        for i in range(len(wh_t_df.columns)-1):
-            wh_t_df.iloc[num, i] = wh_t_df.iloc[num, i] + ((i+1) * 2)
-        for j in range(len(wh_t_df.columns)-1):
-            bl_t_df.iloc[num, j] = wh_t_df.iloc[num, j] + ((j+1) * 2)
+        for i in range(len(wh_t_df.columns) - 1):
+            wh_t_df.iloc[num, i] = wh_t_df.iloc[num, i] + ((i + 1) * 2)
+        for j in range(len(wh_t_df.columns) - 1):
+            bl_t_df.iloc[num, j] = wh_t_df.iloc[num, j] + ((j + 1) * 2)
 
     # Add 5 seconds to all the moves for games that give +5 sec/move
     for num in five_list:
-        for i in range(len(wh_t_df.columns)-1):
-            wh_t_df.iloc[num, i] = wh_t_df.iloc[num, i] + ((i+1) * 5)
-        for j in range(len(wh_t_df.columns)-1):
-            bl_t_df.iloc[num, j] = wh_t_df.iloc[num, j] + ((j+1) * 5)
+        for i in range(len(wh_t_df.columns) - 1):
+            wh_t_df.iloc[num, i] = wh_t_df.iloc[num, i] + ((i + 1) * 5)
+        for j in range(len(wh_t_df.columns) - 1):
+            bl_t_df.iloc[num, j] = wh_t_df.iloc[num, j] + ((j + 1) * 5)
 
     # Change time values where time is really high
     for num in wh_t_df.columns:
@@ -308,10 +308,10 @@ def help_func1(m_df, d_df):
     for i in range(len(d_df)):
         a = list(m_df.iloc[i])
         if "O-O" in a:
-            cast_list.append(a.index("O-O")+1)
+            cast_list.append(a.index("O-O") + 1)
             cast_w_list.append(1)
         elif "O-O-O" in a:
-            cast_list.append(a.index("O-O-O")+1)
+            cast_list.append(a.index("O-O-O") + 1)
             cast_w_list.append(0)
         else:
             cast_list.append(0)
@@ -384,12 +384,12 @@ def data_cleaning_6(d_df, m_df, bl_m_df, wh_m_df, wh_t_df, bl_t_df):
             'game_time'], d_df['opp_time_used']))
 
     # Converting time to numeric for easier calculations
-    d_df.loc[:, 'end_time'] = to_numeric(d_df['end_time'])/3600000000
+    d_df.loc[:, 'end_time'] = to_numeric(d_df['end_time']) / 3600000000
     d_df.loc[:, 'start_time'] = d_df['end_time'] - \
-        (d_df['time_used']+d_df['opp_time_used'])/3.6
+        (d_df['time_used'] + d_df['opp_time_used']) / 3.6
 
     d_df.loc[:, 'start_time'] = [num if num >=
-                                 0 else num+24000 for num in d_df.start_time]
+                                 0 else num + 24000 for num in d_df.start_time]
 
     d_df.loc[:, 'num_moves'] = np.where(d_df['color'] == 1, d_df[
         'white_num_moves'], d_df['black_num_moves'])
@@ -397,12 +397,12 @@ def data_cleaning_6(d_df, m_df, bl_m_df, wh_m_df, wh_t_df, bl_t_df):
         'white_num_moves'], d_df['black_num_moves'])
 
     # Average time per move
-    d_df.loc[:, 'avg_time'] = d_df['time_used']/d_df['num_moves']
-    d_df.loc[:, 'opp_avg_time'] = d_df['opp_time_used']/d_df['opp_num_moves']
+    d_df.loc[:, 'avg_time'] = d_df['time_used'] / d_df['num_moves']
+    d_df.loc[:, 'opp_avg_time'] = d_df['opp_time_used'] / d_df['opp_num_moves']
 
     # Rounding the time to start of the hour
-    d_df.loc[:, 'start_time'] = d_df['start_time']//1000
-    d_df.loc[:, 'end_time'] = d_df['end_time']//1000
+    d_df.loc[:, 'start_time'] = d_df['start_time'] // 1000
+    d_df.loc[:, 'end_time'] = d_df['end_time'] // 1000
 
     return d_df.drop(columns=[
         'white', 'black', 'termination', 'white_num_moves', 'black_num_moves',
@@ -440,8 +440,8 @@ def data_cleaning_7(d_df, wh_tm_df, bl_tm_df):
     d_df.loc[:, 'elo'] = d_df['post_elo'].subtract(d_df['elo_delta'])
 
     # Chess assigns elo of 1000 to a new member
-    d_df.elo.iloc[0] = 1000
-    d_df.elo_delta.iloc[0] = d_df['post_elo'].iloc[0] - d_df['elo'].iloc[0]
+    d_df.loc[0, 'elo'] = 1000
+    d_df.loc[0, 'elo_delta'] = d_df['post_elo'].iloc[0] - d_df['elo'].iloc[0]
     d_df.loc[:, 'opp_elo'] = d_df['opp_post_elo'].subtract(d_df['elo_delta'])
 
     # diff is the difference in elo between players
@@ -452,7 +452,7 @@ def data_cleaning_7(d_df, wh_tm_df, bl_tm_df):
 
     d_df_len = len(d_df)
 
-    d_df.drop([d_df_len-1], inplace=True)
+    d_df.drop([d_df_len - 1], inplace=True)
 
     # Changed stings of how the player won to integers
     d_df['won_by'].replace(['checkmate', 'resignation', 'time', 'material', 'agreement',
