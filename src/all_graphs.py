@@ -44,21 +44,37 @@ def get_graph_df(file_name):
 
     return df
 
+# def graph_lim(mean_df, count_df, main_df, col_name):
+#     for num in mean_df.index:
+#         if main_df[main_df[col_name]==num].result.count<5:
+
 
 def graph_start_time(df):
     df_mean_by_start_time = df.groupby('start_time').mean()
     df_mean_by_start_time.reset_index(inplace=True)
     df_count_by_start_time = df.groupby('start_time').count()
     df_count_by_start_time.reset_index(inplace=True)
+
+    # print(df_mean_by_start_time.result.nsmallest(5))
+    # print(df_mean_by_start_time.result.nlargest(5))
+    # print((df[df.start_time==3]).elo.count())
+    # i_min = df_mean_by_start_time.result.min()
+    # i_max = df_mean_by_start_time.result.max()
+    # ii_min = df_count_by_start_time.result.min()
+    # ii_max = df_count_by_start_time.result.max()
+
     df_mean_by_start_time.plot.scatter(x='start_time', y='result',
                                        legend=False)
+    
+
+
     plt.title('Result by Time of Day')
     plt.xlabel('Starting Time')
     plt.xlim(-.25, 24)
     plt.xticks(ticks=np.arange(0, 25, step=4))
     plt.ylabel('Winning Ratio')
-    plt.ylim(0.41, 0.610)
-    plt.yticks(ticks=np.arange(0.41, 0.611, step=0.01))
+    plt.ylim(.41, .61)
+    plt.yticks(ticks=np.arange(.41, .62, step=0.01))
 
     df_count_by_start_time.plot.scatter(x='start_time', y='result',
                                         legend=False)

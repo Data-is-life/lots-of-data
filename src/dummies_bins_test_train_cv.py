@@ -41,19 +41,16 @@ def get_Xy_train_test(df, split_min=0.8, split_max=0.85):
 
     df.loc[:, 'start_time_bin'] = pd.cut(df['start_time'], bins=24, labels=False)
 
-    numeric_predictors = ['color', 'diff_bin',
-                          'game_time', 'start_time_bin', 'weekday']
-    
-    df = df[numeric_predictors].copy()
+    df.drop(columns=['Unnamed: 0', 'result', 'opp_elo', 'elo', 'start_time',
+    	             'diff', 'day'], inplace=True)
 
     df = pd.get_dummies(df, prefix='gt', drop_first=True,
                         columns=['game_time'])
-    # print(df.columns)
     df = pd.get_dummies(df, prefix='st', drop_first=True,
                         columns=['start_time_bin'])
-    # print(df.columns)
     df = pd.get_dummies(df, prefix='wd', drop_first=True, columns=['weekday'])
-    # print(df.columns)
+
+    # df.drop(columns=['start_time', 'game_time', 'diff', ])
 
     X = df.values
     print(f'X Shape: {X.shape}')

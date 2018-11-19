@@ -1,10 +1,5 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""
-Created on Sun Nov 18 17:38:34 2018
-
-@author: guess
-"""
 
 import pandas as pd
 # import numpy as np
@@ -26,7 +21,7 @@ from dummies_bins_test_train_cv import get_Xy_train_test
 # _, _, _ = main_cleanup('../data/dest.pgn')
 df = pd.read_csv('../data/use_for_predictions.csv')
 
-X_train, X_test, y_train, y_test, X, y, df_clean = get_Xy_train_test(df, .97, .975)
+X_train, X_test, y_train, y_test, X, y, df_clean = get_Xy_train_test(df, .985, .995)
 X_train = X_train.astype('float64')
 X_test = X_test.astype('float64')
 y_train = y_train.astype('int64')
@@ -36,17 +31,19 @@ std_sclr = StandardScaler()
 X_train = std_sclr.fit_transform(X_train)
 X_test = std_sclr.fit_transform(X_test)
 
-for num in [10, 15, 30, 50, 75, 100, 150, 200]:
+d = {}
+for i in [20, 16, 12, 8, 4]:
+    for num in [10, 15, 30, 50]:
 
-    def _classifier():
-        classifier = Sequential()
+        def _classifier():
+            classifier = Sequential()
 
-        classifier.add(Dense(units=64, kernel_initializer='uniform',
+            classifier.add(Dense(units=64, kernel_initializer='uniform',
                              activation='relu', input_dim=30))
 
-        classifier.add(
-            Dense(units=256, kernel_initializer='uniform',
-                  activation='softmax'))
+            classifier.add(
+                    Dense(units=256, kernel_initializer='uniform',
+                          activation='softmax'))
 
     #    classifier.add(
     #        Dense(units=256, kernel_initializer='uniform',
@@ -54,26 +51,33 @@ for num in [10, 15, 30, 50, 75, 100, 150, 200]:
     #
     #    classifier.add(Dropout(rate=0.15))
     #
-        classifier.add(
-            Dense(units=128, kernel_initializer='uniform', activation='relu'))
+            classifier.add(
+                    Dense(units=128, kernel_initializer='uniform',
+                          activation='relu'))
 
-        classifier.add(
-            Dense(units=1, kernel_initializer='uniform', activation='sigmoid'))
+            classifier.add(
+                    Dense(units=1, kernel_initializer='uniform',
+                          activation='sigmoid'))
 
-        classifier.compile(
-            optimizer='nadam', loss='binary_crossentropy',
-            metrics=['accuracy'])
+            classifier.compile(
+                    optimizer='nadam', loss='binary_crossentropy',
+                    metrics=['accuracy'])
 
-        return classifier
+            return classifier
 
-    classifier = _classifier()
+        classifier = _classifier()
 
-    classifier.fit(X_train, y_train, batch_size=8, epochs=num,
+        classifier.fit(X_train, y_train, batch_size=8, epochs=num,
                    class_weight='balanced', shuffle=False)
 
-    y_pred = classifier.predict(X_test)
-    y_pred = (y_pred > 0.5)
+        y_pred = classifier.predict(X_test)
+        y_pred = (y_pred > 0.5)
 
-    cm = confusion_matrix(y_test, y_pred)
+        cm = confusion_matrix(y_test, y_pred)
 
-    print(f'{((cm[0][0]+cm[1][1])/cm.sum()*100).round(1)}%')
+        d[f'acc-{num}'] = (f'{((cm[0][0]+cm[1][1])/cm.sum()*100).round(1)}%')
+        d[f'batch-{i}'] = (f'{((cm[0][0]+cm[1][1])/cm.sum()*100).round(1)}%')
+        d[f'cm-{num}'] = cm
+        print(d)
+
+print(d)
