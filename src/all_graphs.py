@@ -408,8 +408,9 @@ def move_num_castled(df):
     plt.xlim(-.5, 24)
     plt.xticks(ticks=np.arange(0, 25, step=4))
     plt.ylabel('# of Games')
+    mxc = int(mxc/2)
     plt.ylim(mnc, mxc)
-    plt.yticks(ticks=np.arange(mnc, mxc + inc / 2, step=inc))
+    plt.yticks(ticks=np.arange(mnc, mxc + inc / 2, step=int(inc/2)))
     plt.show()
 
 
@@ -432,8 +433,9 @@ def opp_move_num_castled(df):
     plt.xlim(-.5, 25)
     plt.xticks(ticks=np.arange(0, 26, step=5))
     plt.ylabel('# of Games')
+    mxc = int(mxc/4)
     plt.ylim(mnc, mxc)
-    plt.yticks(ticks=np.arange(mnc, mxc + inc / 2, step=inc))
+    plt.yticks(ticks=np.arange(mnc, mxc + inc / 2, step=int(inc/4)))
     plt.show()
 
 
@@ -456,8 +458,9 @@ def result_by_time_used(df):
     plt.xlim(-1, 101)
     plt.xticks(ticks=np.arange(0, 101, step=20))
     plt.ylabel('# of Games')
+    mxc = int(mxc/4.5)
     plt.ylim(mnc, mxc)
-    plt.yticks(ticks=np.arange(mnc, mxc + inc / 2, step=inc))
+    plt.yticks(ticks=np.arange(mnc, mxc + inc / 2, step=int(inc/4.5)))
     plt.show()
 
 
@@ -480,6 +483,7 @@ def result_by_opp_time_used(df):
     plt.xlim(-1, 101)
     plt.xticks(ticks=np.arange(0, 100, step=20))
     plt.ylabel('# of Games')
+    mxc = int(mxc/4)
     plt.ylim(mnc, mxc)
-    plt.yticks(ticks=np.arange(mnc, mxc + inc / 2, step=inc))
+    plt.yticks(ticks=np.arange(mnc, mxc + inc / 2, step=int(inc/4)))
     plt.show()
