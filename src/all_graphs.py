@@ -44,57 +44,74 @@ def get_graph_df(file_name):
 
     return df
 
-# def graph_lim(mean_df, count_df, main_df, col_name):
-#     for num in mean_df.index:
-#         if main_df[main_df[col_name]==num].result.count<5:
+
+def graph_lim(mean_df, count_df, df, col_name):
+
+    for num in mean_df[col_name]:
+        if df[df[col_name] == num].result.count() < 5:
+            mean_df = mean_df[mean_df[col_name] != num]
+
+    for num in count_df[col_name]:
+        if df[df[col_name] == num].result.count() < 5:
+            count_df = count_df[count_df[col_name] != num]
+
+    mean_df.sort_values(by='result', inplace=True)
+    mean_df.reset_index(inplace=True)
+    min_mean = mean_df.loc[0, 'result']
+    max_mean = mean_df.loc[mean_df.index.max(), 'result']
+    int_mean = ((max_mean - min_mean) / 10).round(2)
+
+    count_df.sort_values(by='result', inplace=True)
+    count_df.reset_index(inplace=True)
+    min_count = count_df.loc[0, 'result']
+    max_count = count_df.loc[count_df.index.max(), 'result']
+    int_count = ((max_count - min_count) / 10).round(0)
+
+    mean_graph_vals = [min_mean - int_mean, max_mean + int_mean, int_mean]
+    count_graph_vals = [min_count - int_count,
+                        max_count + int_count, int_count]
+
+    return mean_graph_vals, count_graph_vals
+
+
+def get_mean_count_df(df, col_name):
+
+    mean_df = df.groupby(col_name).mean()
+    mean_df.reset_index(inplace=True)
+    count_df = df.groupby(col_name).count()
+    count_df.reset_index(inplace=True)
+
+    return mean_df, count_df
 
 
 def graph_start_time(df):
-    df_mean_by_start_time = df.groupby('start_time').mean()
-    df_mean_by_start_time.reset_index(inplace=True)
-    df_count_by_start_time = df.groupby('start_time').count()
-    df_count_by_start_time.reset_index(inplace=True)
+    mean_df, count_df = get_mean_count_df(df, 'start_time')
+    mgv, cgv = graph_lim(mean_df, count_df, df, 'start_time')
 
-    # print(df_mean_by_start_time.result.nsmallest(5))
-    # print(df_mean_by_start_time.result.nlargest(5))
-    # print((df[df.start_time==3]).elo.count())
-    # i_min = df_mean_by_start_time.result.min()
-    # i_max = df_mean_by_start_time.result.max()
-    # ii_min = df_count_by_start_time.result.min()
-    # ii_max = df_count_by_start_time.result.max()
-
-    df_mean_by_start_time.plot.scatter(x='start_time', y='result',
-                                       legend=False)
-    
-
-
+    mean_df.plot.scatter(x='start_time', y='result', legend=False)
     plt.title('Result by Time of Day')
     plt.xlabel('Starting Time')
     plt.xlim(-.25, 24)
     plt.xticks(ticks=np.arange(0, 25, step=4))
     plt.ylabel('Winning Ratio')
-    plt.ylim(.41, .61)
-    plt.yticks(ticks=np.arange(.41, .62, step=0.01))
+    plt.ylim(mgv[0], mgv[1])
+    plt.yticks(ticks=np.arange(mgv[0], mgv[1] + mgv[2], step=mgv[2]))
 
-    df_count_by_start_time.plot.scatter(x='start_time', y='result',
-                                        legend=False)
+    count_df.plot.scatter(x='start_time', y='result', legend=False)
     plt.title('# of Games by Time of Day')
     plt.xlabel('Starting Time')
     plt.xlim(-.25, 24)
     plt.xticks(ticks=np.arange(0, 25, step=4))
     plt.ylabel('# of Games')
-    plt.ylim(0, 200)
-    plt.yticks(ticks=np.arange(0, 201, step=20))
+    plt.ylim(cgv[0], cgv[1])
+    plt.yticks(ticks=np.arange(cgv[0], cgv[1] + cgv[2], step=cgv[2]))
     plt.show()
 
 
 def graph_day_of_month(df):
-    df_mean_by_day = df.groupby('day').mean()
-    df_mean_by_day.reset_index(inplace=True)
-    df_count_by_day = df.groupby('day').count()
-    df_count_by_day.reset_index(inplace=True)
+    mean_df, count_df = get_mean_count_df(df, 'day')
 
-    df_mean_by_day.plot.scatter(x='day', y='result', legend=False)
+    mean_df.plot.scatter(x='day', y='result', legend=False)
     plt.title('Result by Day of the Month')
     plt.xlabel('Day of the Month')
     plt.xlim(0, 32)
@@ -103,7 +120,7 @@ def graph_day_of_month(df):
     plt.ylim(0.4, 0.6)
     plt.yticks(ticks=np.arange(0.4, 0.61, step=0.02))
 
-    df_count_by_day.plot.scatter(x='day', y='result', legend=False)
+    count_df.plot.scatter(x='day', y='result', legend=False)
     plt.title('# of Games by Day of the Month')
     plt.xlabel('Day of the Month')
     plt.xlim(0, 32)
@@ -115,12 +132,9 @@ def graph_day_of_month(df):
 
 
 def day_of_week(df):
-    df_mean_by_weekday = df.groupby('weekday').mean()
-    df_mean_by_weekday.reset_index(inplace=True)
-    df_count_by_weekday = df.groupby('weekday').count()
-    df_count_by_weekday.reset_index(inplace=True)
+    mean_df, count_df = get_mean_count_df(df, 'weekday')
 
-    df_mean_by_weekday.plot.scatter(x='weekday', y='result', legend=False)
+    mean_df.plot.scatter(x='weekday', y='result', legend=False)
     plt.title('Result by Day of the Week')
     plt.xlabel('Weekday')
     plt.xticks(ticks=np.arange(7), labels=['Mon', 'Tue', 'Wed', 'Thu',
@@ -129,7 +143,7 @@ def day_of_week(df):
     plt.ylim(0.44, 0.53)
     plt.yticks(ticks=np.arange(0.44, 0.531, step=0.01))
 
-    df_count_by_weekday.plot.scatter(x='weekday', y='result', legend=False)
+    count_df.plot.scatter(x='weekday', y='result', legend=False)
     plt.title('# of Games by Day of the Week')
     plt.xlabel('Weekday')
     plt.xticks(ticks=np.arange(7), labels=['Mon', 'Tue', 'Wed',
@@ -141,12 +155,9 @@ def day_of_week(df):
 
 
 def castled_or_not(df):
-    df_mean_by_castled = df.groupby('castled').mean()
-    df_mean_by_castled.reset_index(inplace=True)
-    df_count_by_castled = df.groupby('castled').count()
-    df_count_by_castled.reset_index(inplace=True)
+    mean_df, count_df = get_mean_count_df(df, 'castled')
 
-    df_mean_by_castled.plot.scatter(x='castled', y='result', legend=False)
+    mean_df.plot.scatter(x='castled', y='result', legend=False)
     plt.title('Result by Castling')
     plt.xlabel('Castled')
     plt.xlim(-1.02, 1.02)
@@ -155,7 +166,7 @@ def castled_or_not(df):
     plt.ylim(0.46, 0.515)
     plt.yticks(ticks=np.arange(0.46, 0.516, step=0.005))
 
-    df_count_by_castled.plot.scatter(x='castled', y='result', legend=False)
+    count_df.plot.scatter(x='castled', y='result', legend=False)
     plt.title('# of Games by Castling')
     plt.xlabel('Castled')
     plt.xlim(-1.02, 1.02)
@@ -168,13 +179,9 @@ def castled_or_not(df):
 
 
 def opp_castled_or_not(df):
-    df_mean_by_opp_castled = df.groupby('opp_castled').mean()
-    df_mean_by_opp_castled.reset_index(inplace=True)
-    df_count_by_opp_castled = df.groupby('opp_castled').count()
-    df_count_by_opp_castled.reset_index(inplace=True)
+    mean_df, count_df = get_mean_count_df(df, 'opp_castled')
 
-    df_mean_by_opp_castled.plot.scatter(x='opp_castled', y='result',
-                                        legend=False)
+    mean_df.plot.scatter(x='opp_castled', y='result', legend=False)
     plt.title('Result by Opposition Castling')
     plt.xlabel('Opposition Castled')
     plt.xlim(-1.02, 1.02)
@@ -183,8 +190,7 @@ def opp_castled_or_not(df):
     plt.ylim(0.44, 0.58)
     plt.yticks(ticks=np.arange(0.44, 0.581, step=0.01))
 
-    df_count_by_opp_castled.plot.scatter(x='opp_castled', y='result',
-                                         legend=False)
+    count_df.plot.scatter(x='opp_castled', y='result', legend=False)
     plt.title('# of Games for Opposition Castling')
     plt.xlabel('Opposition Castled')
     plt.xlim(-1.02, 1.02)
@@ -196,12 +202,9 @@ def opp_castled_or_not(df):
 
 
 def game_time(df):
-    df_mean_by_game_time = df.groupby('game_time').mean()
-    df_mean_by_game_time.reset_index(inplace=True)
-    df_count_by_game_time = df.groupby('game_time').count()
-    df_count_by_game_time.reset_index(inplace=True)
+    mean_df, count_df = get_mean_count_df(df, 'game_time')
 
-    df_mean_by_game_time.plot.scatter(x='game_time', y='result', legend=False)
+    mean_df.plot.scatter(x='game_time', y='result', legend=False)
     plt.title('Result by Game Time')
     plt.ylabel('Winning Ratio')
     plt.ylim(0.41, 0.53)
@@ -210,8 +213,7 @@ def game_time(df):
     plt.xlim(170, 610)
     plt.xticks(ticks=[180, 300, 600], labels=[180, 300, 600])
 
-    df_count_by_game_time.plot.scatter(x='game_time', y='result', legend=False)
-
+    count_df.plot.scatter(x='game_time', y='result', legend=False)
     plt.title('# of Games for Each Game Time')
     plt.xlabel('Game Time (Seconds)')
     plt.xlim(170, 610)
@@ -223,9 +225,9 @@ def game_time(df):
 
 
 def result_by_color(df):
-    df_mean_by_color = df.groupby('color').mean()
-    df_mean_by_color.reset_index(inplace=True)
-    df_mean_by_color.plot.scatter(x='color', y='result', legend=False)
+    mean_df, count_df = get_mean_count_df(df, 'color')
+
+    mean_df.plot.scatter(x='color', y='result', legend=False)
     plt.title('Result by Color')
     plt.xlabel('Color')
     plt.xlim(-.03, 1.01)
@@ -237,12 +239,9 @@ def result_by_color(df):
 
 
 def result_elo(df):
-    df_mean_by_elo = df.groupby('bin_elo').mean()
-    df_mean_by_elo.reset_index(inplace=True)
-    df_count_by_elo = df.groupby('bin_elo').count()
-    df_count_by_elo.reset_index(inplace=True)
+    mean_df, count_df = get_mean_count_df(df, 'bin_elo')
 
-    df_mean_by_elo.plot.scatter(x='bin_elo', y='result', legend=False)
+    mean_df.plot.scatter(x='bin_elo', y='result', legend=False)
     plt.title('Result by ELO')
     plt.xlabel('ELO')
     plt.xlim(660, 1060)
@@ -251,7 +250,7 @@ def result_elo(df):
     plt.ylim(0.25, 0.7)
     plt.yticks(ticks=np.arange(0.25, 0.71, step=0.05))
 
-    df_count_by_elo.plot.scatter(x='bin_elo', y='result', legend=False)
+    count_df.plot.scatter(x='bin_elo', y='result', legend=False)
     plt.title('# of Games by ELO')
     plt.xlabel('ELO')
     plt.xlim(660, 1060)
@@ -263,12 +262,9 @@ def result_elo(df):
 
 
 def opp_result_elo(df):
-    df_mean_by_opp_elo = df.groupby('bin_opp_elo').mean()
-    df_mean_by_opp_elo.reset_index(inplace=True)
-    df_count_by_opp_elo = df.groupby('bin_opp_elo').count()
-    df_count_by_opp_elo.reset_index(inplace=True)
+    mean_df, count_df = get_mean_count_df(df, 'bin_opp_elo')
 
-    df_mean_by_opp_elo.plot.scatter(x='bin_opp_elo', y='result', legend=False)
+    mean_df.plot.scatter(x='bin_opp_elo', y='result', legend=False)
     plt.title('Result by Opposition ELO')
     plt.xlabel('Opposition ELO')
     plt.xlim(610, 1160)
@@ -277,7 +273,7 @@ def opp_result_elo(df):
     plt.ylim(0.1, 1.01)
     plt.yticks(ticks=np.arange(0.1, 1.02, step=0.1))
 
-    df_count_by_opp_elo.plot.scatter(x='bin_opp_elo', y='result', legend=False)
+    count_df.plot.scatter(x='bin_opp_elo', y='result', legend=False)
     plt.title('# of Games by Opposition ELO')
     plt.xlabel('Opposition ELO')
     plt.xlim(610, 1160)
@@ -289,12 +285,9 @@ def opp_result_elo(df):
 
 
 def result_by_elo_diff(df):
-    df_mean_by_diff = df.groupby('bin_diff').mean()
-    df_mean_by_diff.reset_index(inplace=True)
-    df_count_by_diff = df.groupby('bin_diff').count()
-    df_count_by_diff.reset_index(inplace=True)
+    mean_df, count_df = get_mean_count_df(df, 'bin_diff')
 
-    df_mean_by_diff.plot.scatter(x='bin_diff', y='result', legend=False)
+    mean_df.plot.scatter(x='bin_diff', y='result', legend=False)
     plt.title('Result by Difference in ELO')
     plt.xlabel('Difference in ELO')
     plt.xlim((-105, 105))
@@ -303,7 +296,7 @@ def result_by_elo_diff(df):
     plt.ylim((0, 1))
     plt.yticks(np.arange(0, 1.01, step=0.1))
 
-    df_count_by_diff.plot.scatter(x='bin_diff', y='result', legend=False)
+    count_df.plot.scatter(x='bin_diff', y='result', legend=False)
     plt.title('# of Games by Difference in ELO')
     plt.xlabel('Difference in ELO')
     plt.xlim((-105, 105))
@@ -315,12 +308,9 @@ def result_by_elo_diff(df):
 
 
 def won_via(df):
-    df_mean_by_won_by = df.groupby('won_by').mean()
-    df_mean_by_won_by.reset_index(inplace=True)
-    df_count_by_won_by = df.groupby('won_by').count()
-    df_count_by_won_by.reset_index(inplace=True)
+    mean_df, count_df = get_mean_count_df(df, 'won_by')
 
-    df_mean_by_won_by.plot.scatter(x='won_by', y='result', legend=False)
+    mean_df.plot.scatter(x='won_by', y='result', legend=False)
     plt.title('Result by the Result Type')
     plt.xlabel('Result Type')
     plt.xticks(ticks=np.arange(9), labels=['Rule', 'Stlmte', 'Abndn', 'Rptn',
@@ -330,7 +320,7 @@ def won_via(df):
     plt.ylim(0.25, 0.81)
     plt.yticks(ticks=np.arange(0.25, 0.86, step=0.05))
 
-    df_count_by_won_by.plot.scatter(x='won_by', y='result', legend=False)
+    count_df.plot.scatter(x='won_by', y='result', legend=False)
     plt.title('# of Games by the Result Type')
     plt.xlabel('Result Type')
     plt.xticks(ticks=np.arange(9), labels=['Rule', 'Stlmte', 'Abndn', 'Rptn',
@@ -343,13 +333,9 @@ def won_via(df):
 
 
 def number_of_moves(df):
-    df_mean_by_num_moves = df.groupby('bin_num_moves').mean()
-    df_mean_by_num_moves.reset_index(inplace=True)
-    df_count_by_num_moves = df.groupby('bin_num_moves').count()
-    df_count_by_num_moves.reset_index(inplace=True)
+    mean_df, count_df = get_mean_count_df(df, 'bin_num_moves')
 
-    df_mean_by_num_moves.plot.scatter(
-        x='bin_num_moves', y='result', legend=False)
+    mean_df.plot.scatter(x='bin_num_moves', y='result', legend=False)
     plt.title('Result by Number of Moves')
     plt.xlabel('Number of Moves')
     plt.xlim(-1, 110)
@@ -358,8 +344,7 @@ def number_of_moves(df):
     plt.ylim((.35, .75))
     plt.yticks(ticks=np.arange(0.35, 0.76, step=0.05))
 
-    df_count_by_num_moves.plot.scatter(
-        x='bin_num_moves', y='result', legend=False)
+    count_df.plot.scatter(x='bin_num_moves', y='result', legend=False)
     plt.title('# of Games by Number of Moves')
     plt.xlabel('Number of Moves')
     plt.xlim(-1, 110)
@@ -371,13 +356,9 @@ def number_of_moves(df):
 
 
 def move_num_castled(df):
-    df_mean_by_castled_on = df.groupby('castled_on').mean()
-    df_mean_by_castled_on.reset_index(inplace=True)
-    df_count_by_castled_on = df.groupby('castled_on').count()
-    df_count_by_castled_on.reset_index(inplace=True)
+    mean_df, count_df = get_mean_count_df(df, 'castled_on')
 
-    df_mean_by_castled_on.plot.scatter(x='castled_on', y='result',
-                                       legend=False)
+    mean_df.plot.scatter(x='castled_on', y='result', legend=False)
     plt.title('Result by the Move # of Castling (0 for not castling)')
     plt.xlabel('Move # of Castling')
     plt.xlim(-.5, 32)
@@ -386,8 +367,7 @@ def move_num_castled(df):
     plt.ylim((.35, 1.01))
     plt.yticks(ticks=np.arange(0.35, 1.01, step=0.05))
 
-    df_count_by_castled_on.plot.scatter(x='castled_on', y='result',
-                                        legend=False)
+    count_df.plot.scatter(x='castled_on', y='result', legend=False)
     plt.title('# of Games by the Move # of Castling (0 for not castling)')
     plt.xlabel('Move # of Castling')
     plt.xlim(-.5, 32)
@@ -399,13 +379,9 @@ def move_num_castled(df):
 
 
 def opp_move_num_castled(df):
-    df_mean_by_opp_castled_on = df.groupby('opp_castled_on').mean()
-    df_mean_by_opp_castled_on.reset_index(inplace=True)
-    df_count_by_opp_castled_on = df.groupby('opp_castled_on').count()
-    df_count_by_opp_castled_on.reset_index(inplace=True)
+    mean_df, count_df = get_mean_count_df(df, 'opp_castled_on')
 
-    df_mean_by_opp_castled_on.plot.scatter(x='opp_castled_on', y='result',
-                                           legend=False)
+    mean_df.plot.scatter(x='opp_castled_on', y='result', legend=False)
     plt.title('Result by the Move # of Opposition Castling')
     plt.xlabel('Move # of Opp Castling')
     plt.xlim(-.5, 32)
@@ -414,8 +390,7 @@ def opp_move_num_castled(df):
     plt.ylim((.25, .75))
     plt.yticks(ticks=np.arange(0.25, 0.76, step=0.05))
 
-    df_count_by_opp_castled_on.plot.scatter(x='opp_castled_on', y='result',
-                                            legend=False)
+    count_df.plot.scatter(x='opp_castled_on', y='result', legend=False)
     plt.title('# of Games by the Move # of Opposition Castling')
     plt.xlabel('Move # of Opp Castling')
     plt.xlim(0, 32)
@@ -427,12 +402,9 @@ def opp_move_num_castled(df):
 
 
 def result_by_time_used(df):
-    df_mean_by_time_used = df.groupby('time_used').mean()
-    df_mean_by_time_used.reset_index(inplace=True)
-    df_count_by_time_used = df.groupby('time_used').count()
-    df_count_by_time_used.reset_index(inplace=True)
+    mean_df, count_df = get_mean_count_df(df, 'time_used')
 
-    df_mean_by_time_used.plot.scatter(x='time_used', y='result', legend=False)
+    mean_df.plot.scatter(x='time_used', y='result', legend=False)
     plt.title('Result by the Amount of Time Used (in %)')
     plt.xlabel('Amount of Time Used(%)')
     plt.xlim(-1, 101)
@@ -440,7 +412,8 @@ def result_by_time_used(df):
     plt.ylabel('Winning Ratio')
     plt.ylim((-.01, 1.01))
     plt.yticks(ticks=np.arange(0, 1.01, step=0.1))
-    df_count_by_time_used.plot.scatter(x='time_used', y='result', legend=False)
+
+    count_df.plot.scatter(x='time_used', y='result', legend=False)
     plt.title('# of Games by the Amount of Time Used (in %)')
     plt.xlabel('Amount of Time Used(%)')
     plt.xlim(-1, 101)
@@ -452,13 +425,9 @@ def result_by_time_used(df):
 
 
 def result_by_opp_time_used(df):
-    df_mean_by_opp_time_used = df.groupby('opp_time_used').mean()
-    df_mean_by_opp_time_used.reset_index(inplace=True)
-    df_count_by_opp_time_used = df.groupby('opp_time_used').count()
-    df_count_by_opp_time_used.reset_index(inplace=True)
+    mean_df, count_df = get_mean_count_df(df, 'opp_time_used')
 
-    df_mean_by_opp_time_used.plot.scatter(
-        x='opp_time_used', y='result', legend=False)
+    mean_df.plot.scatter(x='opp_time_used', y='result', legend=False)
     plt.title('Result by the Amount of Time Used by Opposition(in %)')
     plt.xlabel('Amount of Time Used by Opposition(%)')
     plt.xlim(-1, 101)
@@ -467,8 +436,7 @@ def result_by_opp_time_used(df):
     plt.ylim((.19, .9))
     plt.yticks(ticks=np.arange(.2, .91, step=0.1))
 
-    df_count_by_opp_time_used.plot.scatter(
-        x='opp_time_used', y='result', legend=False)
+    count_df.plot.scatter(x='opp_time_used', y='result', legend=False)
     plt.title('# of Games by the Amount of Time Used by Opposition(in %)')
     plt.xlabel('Amount of Time Used by Opposition(%)')
     plt.xlim(-1, 101)

@@ -37,15 +37,17 @@ def get_Xy_train_test(df, split_min=0.8, split_max=0.85):
 
     dif_labels = list(range(len(dif_bins) - 1))
 
-    df.loc[:, 'diff_bin'] = pd.cut(df['diff'], bins=dif_bins, labels=dif_labels)
+    df.loc[:, 'diff_bin'] = pd.cut(
+        df['diff'], bins=dif_bins, labels=dif_labels)
 
-    df.loc[:, 'start_time_bin'] = pd.cut(df['start_time'], bins=24, labels=False)
+    df.loc[:, 'start_time_bin'] = pd.cut(
+        df['start_time'], bins=24, labels=False)
 
     df.drop(columns=['Unnamed: 0', 'result', 'opp_elo', 'elo', 'start_time',
-    	             'diff', 'day'], inplace=True)
+                     'diff', 'day'], inplace=True)
 
-    df = pd.get_dummies(df, prefix='gt', drop_first=True,
-                        columns=['game_time'])
+    # df = pd.get_dummies(df, prefix='gt', drop_first=True,
+    #                     columns=['game_time'])
     df = pd.get_dummies(df, prefix='st', drop_first=True,
                         columns=['start_time_bin'])
     df = pd.get_dummies(df, prefix='wd', drop_first=True, columns=['weekday'])
@@ -55,13 +57,8 @@ def get_Xy_train_test(df, split_min=0.8, split_max=0.85):
     X = df.values
     print(f'X Shape: {X.shape}')
 
-    if split_min < 1:
-
-        rand_split = np.random.randint(
+    rand_split = np.random.randint(
             int(len(X) * split_min), int(len(X) * split_max))
-
-    else:
-        rand_split = ceil(split_min)
 
     X_train = X[:rand_split]
     y_train = y[:rand_split]
