@@ -459,6 +459,9 @@ def data_cleaning_7(d_df, wh_tm_df, bl_tm_df):
                             'repetition', 'abandoned', 'stalemate', 'rule'],
                            list(reversed(range(9))), inplace=True)
 
+    df.drop(columns=['white_elo', 'black_elo', 'white_max_move',
+                     'black_max_move'], inplace=True)
+
     return d_df
 
 

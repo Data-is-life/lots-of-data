@@ -26,6 +26,8 @@ def get_Xy_train_test(df, split_min=0.8, split_max=0.85):
 
     df = df[df['result'] != 0.5]
 
+    # df = df.loc[1000:]
+
     y = np.array(df['result'])
     print(f'y Shape: {y.shape}')
 
@@ -45,6 +47,7 @@ def get_Xy_train_test(df, split_min=0.8, split_max=0.85):
 
     df.drop(columns=['Unnamed: 0', 'result', 'opp_elo', 'elo', 'start_time',
                      'diff', 'day'], inplace=True)
+    print('.')
 
     # df = pd.get_dummies(df, prefix='gt', drop_first=True,
     #                     columns=['game_time'])
