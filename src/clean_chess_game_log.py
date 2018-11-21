@@ -459,7 +459,7 @@ def data_cleaning_7(d_df, wh_tm_df, bl_tm_df):
                             'repetition', 'abandoned', 'stalemate', 'rule'],
                            list(reversed(range(9))), inplace=True)
 
-    df.drop(columns=['white_elo', 'black_elo', 'white_max_move',
+    d_df.drop(columns=['white_elo', 'black_elo', 'white_max_move',
                      'black_max_move'], inplace=True)
 
     return d_df
@@ -524,8 +524,8 @@ def main_cleanup(file_name):
     df_analysis = df_final[analysis_labels].copy()
 
     # Save the files
-    df_final.to_csv('../data/main_with_all_info.csv')
-    df_model.to_csv('../data/use_for_predictions.csv')
-    df_analysis.to_csv('../data/use_for_analysis.csv')
+    df_final.to_csv('../data/main_with_all_info.csv', index=False)
+    df_model.to_csv('../data/use_for_predictions.csv', index=False)
+    df_analysis.to_csv('../data/use_for_analysis.csv', index=False)
 
     return df_model, df_analysis, df_final

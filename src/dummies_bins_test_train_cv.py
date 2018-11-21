@@ -10,11 +10,9 @@ from math import ceil
 
 
 def get_Xy_train_test(df, split_min=0.8, split_max=0.85):
-    '''Classifer = Classifier created
+    '''
     df = dataframe for prediction
     split_min = percentage for minimum split %. Default value = 0.8
-    * New: If need an exact number of games to predict, pass an integer
-
     split_max = percentage for highest split %. Default value = 0.85
 
     Drops games that were drawn
@@ -24,7 +22,7 @@ def get_Xy_train_test(df, split_min=0.8, split_max=0.85):
     X_train, X_test, y_train, y_test
     '''
 
-    df = df[df['result'] != 0.5]
+    df = df.loc[df['result'] != 0.5].copy()
 
     # df = df.loc[1000:]
 
@@ -45,17 +43,14 @@ def get_Xy_train_test(df, split_min=0.8, split_max=0.85):
     df.loc[:, 'start_time_bin'] = pd.cut(
         df['start_time'], bins=24, labels=False)
 
-    df.drop(columns=['Unnamed: 0', 'result', 'opp_elo', 'elo', 'start_time',
-                     'diff', 'day'], inplace=True)
-    print('.')
+    df.drop(columns=['result', 'opp_elo', 'elo', 'start_time', 'diff', 'day'],
+            inplace=True)
 
-    # df = pd.get_dummies(df, prefix='gt', drop_first=True,
-    #                     columns=['game_time'])
+    df = pd.get_dummies(df, prefix='gt', drop_first=True,
+                        columns=['game_time'])
     df = pd.get_dummies(df, prefix='st', drop_first=True,
                         columns=['start_time_bin'])
     df = pd.get_dummies(df, prefix='wd', drop_first=True, columns=['weekday'])
-
-    # df.drop(columns=['start_time', 'game_time', 'diff', ])
 
     X = df.values
     print(f'X Shape: {X.shape}')
