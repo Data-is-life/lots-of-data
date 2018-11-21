@@ -1,3 +1,7 @@
+# Author: Mohit Gangwani
+# Date: 11/15/2018
+# Git-Hub: Data-is-Life
+
 import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
@@ -38,6 +42,9 @@ def get_graph_df(file_name):
 
     df = df[df['time_used'] <= 100].copy()
     df = df[df['opp_time_used'] <= 100].copy()
+
+    df.reset_index(inplace=True)
+    df.drop(columns=['index'], inplace=True)
 
     bn_op = list(range(1200, 2000, 100))
     bn_op.extend(list(range(0, 601, 100)))
