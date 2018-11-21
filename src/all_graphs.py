@@ -27,9 +27,8 @@ def get_graph_df(file_name):
      - Number of moves
      - Time used
      - Time used by opp
-    creates dummies
     returns:
-    X_train, X_test, y_train, y_test'''
+    dataframe ready to be graphed'''
 
     df = pd.read_csv(file_name)
 
@@ -77,6 +76,16 @@ def get_graph_df(file_name):
 
 
 def mn_ct_df(df, col_name):
+    '''
+    Input:
+    df = dataframe for analysis loaded from the csv file
+    col_name = column name to evaluate
+
+    Creates two dataframes from the main df
+     - first df is mean of all the values based on the selected column
+     - second df is the sum of all the values based on the selected column
+    returns:
+    mean df, count df'''
 
     mndf = df.groupby(col_name).mean()
     mndf.reset_index(inplace=True)
@@ -87,6 +96,21 @@ def mn_ct_df(df, col_name):
 
 
 def graph_lim(mndf, ctdf, col_name):
+    '''
+    Input:
+    mndf = dataframe created for mean values of specified column
+    ctdf = dataframe created for sum values of specified column
+    col_name = column name to evaluate
+
+    Creates graph limits of the y-axis
+    - mnm = minimum y-axis value for mean value graph
+    - mxm = maximum y-axis value for mean value graph
+    - rnm = interval y-axis value for mean value graph
+    - mnc = minimum y-axis value for sum value graph
+    - mxc = maximum y-axis value for sum value graph
+    - inc = interval y-axis value for sum value graph
+    returns:
+    mnm, mxm, rnm, mnc, mxc, inc'''
 
     for num in range(len(mndf)):
         if ctdf.loc[num, 'result'] < 5:
@@ -125,6 +149,19 @@ def graph_lim(mndf, ctdf, col_name):
 
 
 def x_axis_lims(ctdf, col_name):
+    '''
+    Input:
+    ctdf = dataframe created for sum values of specified column
+    col_name = column name to evaluate
+
+    Creates graph limits of the x-axis
+    - xmn = minimum x-axis value for both graphs
+    - xmx = maximum x-axis value for both graphs
+    - xin = interval x-axis value for both graphs
+    - smyx = second highest y-axis value for sum value graph
+
+    returns:
+    xmn, xmx, xin, smyx'''
 
     xmn = custom_round_int(ctdf[col_name].min(), 10)
     xmx = custom_round_int(ctdf[col_name].max(), 10)
@@ -146,6 +183,8 @@ def x_axis_lims(ctdf, col_name):
 
 
 def graph_start_time(df):
+    '''Creates graph for results based on starting time of the game'''
+
     mndf, ctdf = mn_ct_df(df, 'start_time')
     mnm, mxm, rnm, mnc, mxc, inc = graph_lim(mndf, ctdf, 'start_time')
 
@@ -170,6 +209,8 @@ def graph_start_time(df):
 
 
 def graph_day_of_month(df):
+    '''Creates graph for results based on day of the month'''
+
     mndf, ctdf = mn_ct_df(df, 'day')
     mnm, mxm, rnm, mnc, mxc, inc = graph_lim(mndf, ctdf, 'day')
 
@@ -194,6 +235,8 @@ def graph_day_of_month(df):
 
 
 def day_of_week(df):
+    '''Creates graph for results based on day of week'''
+
     mndf, ctdf = mn_ct_df(df, 'weekday')
     mnm, mxm, rnm, mnc, mxc, inc = graph_lim(mndf, ctdf, 'weekday')
 
@@ -218,6 +261,8 @@ def day_of_week(df):
 
 
 def castled_or_not(df):
+    '''Creates graph for results based if and where the king was castled'''
+
     mndf, ctdf = mn_ct_df(df, 'castled')
     mnm, mxm, rnm, mnc, mxc, inc = graph_lim(mndf, ctdf, 'castled')
 
@@ -243,6 +288,8 @@ def castled_or_not(df):
 
 
 def opp_castled_or_not(df):
+    '''Creates graph for results based if and where the opposition castled the king'''
+
     mndf, ctdf = mn_ct_df(df, 'opp_castled')
     mnm, mxm, rnm, mnc, mxc, inc = graph_lim(mndf, ctdf, 'opp_castled')
 
@@ -267,6 +314,8 @@ def opp_castled_or_not(df):
 
 
 def game_time(df):
+    '''Creates graph for results based on the game time allowed per player'''
+
     mndf, ctdf = mn_ct_df(df, 'game_time')
     mnm, mxm, rnm, mnc, mxc, inc = graph_lim(mndf, ctdf, 'game_time')
 
@@ -291,6 +340,8 @@ def game_time(df):
 
 
 def result_by_color(df):
+    '''Creates graph for results based color assigned'''
+
     mndf, ctdf = mn_ct_df(df, 'color')
     mnm, mxm, rnm, mnc, mxc, inc = graph_lim(mndf, ctdf, 'color')
 
@@ -306,6 +357,8 @@ def result_by_color(df):
 
 
 def result_elo(df):
+    '''Creates graph for results based on starting ELO'''
+
     mndf, ctdf = mn_ct_df(df, 'bin_elo')
     mnm, mxm, rnm, mnc, mxc, inc = graph_lim(mndf, ctdf, 'bin_elo')
     xmn, xmx, xin, smyx = x_axis_lims(ctdf, 'bin_elo')
@@ -331,6 +384,8 @@ def result_elo(df):
 
 
 def opp_result_elo(df):
+    '''Creates graph for results based on starting opposition ELO'''
+
     mndf, ctdf = mn_ct_df(df, 'bin_opp_elo')
     mnm, mxm, rnm, mnc, mxc, inc = graph_lim(mndf, ctdf, 'bin_opp_elo')
     xmn, xmx, xin, smyx = x_axis_lims(ctdf, 'bin_opp_elo')
@@ -356,6 +411,8 @@ def opp_result_elo(df):
 
 
 def result_by_elo_diff(df):
+    '''Creates graph for results based on difference in ELO'''
+
     mndf, ctdf = mn_ct_df(df, 'bin_diff')
     mnm, mxm, rnm, mnc, mxc, inc = graph_lim(mndf, ctdf, 'bin_diff')
     xmn, xmx, xin, smyx = x_axis_lims(ctdf, 'bin_diff')
@@ -381,6 +438,8 @@ def result_by_elo_diff(df):
 
 
 def won_via(df):
+    '''Creates graph for results based on how the game ended'''
+
     mndf, ctdf = mn_ct_df(df, 'won_by')
     mnm, mxm, rnm, mnc, mxc, inc = graph_lim(mndf, ctdf, 'won_by')
 
@@ -407,6 +466,8 @@ def won_via(df):
 
 
 def number_of_moves(df):
+    '''Creates graph for results based on number of moves per player'''
+
     mndf, ctdf = mn_ct_df(df, 'bin_num_moves')
     mnm, mxm, rnm, mnc, mxc, inc = graph_lim(mndf, ctdf, 'bin_num_moves')
     xmn, xmx, xin, smyx = x_axis_lims(ctdf, 'bin_num_moves')
@@ -432,6 +493,8 @@ def number_of_moves(df):
 
 
 def move_num_castled(df):
+    '''Creates graph for results based on move number if the player castled'''
+
     mndf, ctdf = mn_ct_df(df, 'castled_on')
     mnm, mxm, rnm, mnc, mxc, inc = graph_lim(mndf, ctdf, 'castled_on')
     xmn, xmx, xin, smyx = x_axis_lims(ctdf, 'castled_on')
@@ -458,6 +521,8 @@ def move_num_castled(df):
 
 
 def opp_move_num_castled(df):
+    '''Creates graph for results based on move number if the opposition castled'''
+
     mndf, ctdf = mn_ct_df(df, 'opp_castled_on')
     mnm, mxm, rnm, mnc, mxc, inc = graph_lim(mndf, ctdf, 'opp_castled_on')
     xmn, xmx, xin, smyx = x_axis_lims(ctdf, 'opp_castled_on')
@@ -484,6 +549,8 @@ def opp_move_num_castled(df):
 
 
 def result_by_time_used(df):
+    '''Creates graph for results based on percentage of allowed time used by the player'''
+
     mndf, ctdf = mn_ct_df(df, 'time_used')
     mnm, mxm, rnm, mnc, mxc, inc = graph_lim(mndf, ctdf, 'time_used')
     xmn, xmx, xin, smyx = x_axis_lims(ctdf, 'time_used')
@@ -510,6 +577,8 @@ def result_by_time_used(df):
 
 
 def result_by_opp_time_used(df):
+    '''Creates graph for results based on percentage of allowed time used by the opposition'''
+
     mndf, ctdf = mn_ct_df(df, 'opp_time_used')
     mnm, mxm, rnm, mnc, mxc, inc = graph_lim(mndf, ctdf, 'opp_time_used')
     xmn, xmx, xin, smyx = x_axis_lims(ctdf, 'opp_time_used')
