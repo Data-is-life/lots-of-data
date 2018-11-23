@@ -19,7 +19,11 @@ def get_Xy_train_test(df, split_min=0.8, split_max=0.85):
     Bins difference in elo
     creates dummies
     returns:
-    X_train, X_test, y_train, y_test
+    X_train = Training set with all features
+    y_train = Training set with results
+    X_test = Testing set with all features
+    y_test = Testing set with results to compare with predictions
+    df = dataframe with all columns binned and dummy columns created
     '''
 
     df = df.loc[df['result'] != 0.5].copy()
@@ -71,42 +75,47 @@ def get_Xy_train_test(df, split_min=0.8, split_max=0.85):
     return X_train, X_test, y_train, y_test, X, y, df
 
 
-def cross_validation_process(classifier, X_train, y_train, X_test, y_test, cv,
-                             scoring='average_precision'):
-    '''Classifer = Classifier created
-       X_test = X_test
-       y_test = y_test
-       cv = number of tests to run. Default value = 5
-       Scoring = type of scoring. Default value = "average_precision"
+def cross_val_process(classifier, X_train, y_train, X_test, y_test, cv,
+                      scoring='average_precision'):
+    '''
+    Classifer = Classifier created
+    X_train = Training set with all features
+    y_train = Training set with results
+    X_test = Testing set with all features
+    y_test = Testing set with results to compare with predictions
+    cv = number of tests to run
+    Scoring = type of scoring. Default value = "average_precision"
 
-       Runs cross validation(CV) on a model and test on test set. Prints:
-       - Average Accuracy for scores from CV
-       - Standard Deviation for scores from CV
-       - Scores from CV
-       - Feature importance (if available)
-       - Confusion matrix for test set
-       - Accuracy % for test set
+    Runs cross validation(CV) on the given model with Training set and prints
+    the following analysis:
+    - Average Accuracy for scores from CV
+    - Standard Deviation for scores from CV
+    - Scores from CV
+    - Feature importance (if available)
 
-       Returns Scores from CV
+    Also, creates:
+    - Prediction values from X_test
+    - confusion matrix comparing predicted values to y_test
 
-       Other scorings:
+    Other scorings available:
 
-       Classification:
-       accuracy, balanced_accuracy, average_precision, brier_score_loss, f1,
-       f1_micro, f1_macro, f1_weighted, f1_samples, neg_log_loss, precision,
-       recall, roc_auc
+    For Classification:
+       "accuracy", "balanced_accuracy", "average_precision", "brier_score_loss",
+       "f1", "f1_micro", "f1_macro", "f1_weighted", "f1_samples", "neg_log_loss",
+       "precision", "recall", "roc_auc"
 
-       Clustering:
-       adjusted_mutual_info_score, adjusted_rand_score, completeness_score,
-       fowlkes_mallows_score, homogeneity_score, mutual_info_score,
-       normalized_mutual_info_score, v_measure_score
+    For Clustering:
+       "adjusted_mutual_info_score", "adjusted_rand_score", "completeness_score",
+       "fowlkes_mallows_score", "homogeneity_score", "mutual_info_score",
+       "normalized_mutual_info_score", "v_measure_score"
 
-       Regression:
-       explained_variance, neg_mean_absolute_error, neg_mean_squared_error,
-       neg_mean_squared_log_error, neg_median_absolute_error, r2'''
+    For Regression:
+       "explained_variance", "neg_mean_absolute_error", "neg_mean_squared_error",
+       "neg_mean_squared_log_error", "neg_median_absolute_error", "r2"
+    '''
 
     cross_val = cross_val_score(classifier, X_train, y_train, cv=cv,
-                                     scoring=scoring)
+                                scoring=scoring)
 
     y_pred = classifier.predict(X_test)
     cm = confusion_matrix(y_test, y_pred)
@@ -124,6 +133,6 @@ def cross_validation_process(classifier, X_train, y_train, X_test, y_test, cv,
         print(f'Feature importance = {classifier.feature_importances_}')
     except:
         print("No Feature Importances")
-    
+
     print(
-    f'\nClassification Report:\n{classification_report(y_test, y_pred)}\n')
+        f'\nClassification Report:\n{classification_report(y_test, y_pred)}\n')

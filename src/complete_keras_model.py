@@ -7,15 +7,36 @@ import numpy as np
 
 from pandas import get_dummies as gd
 
+from keras.models import Sequential
+from keras.layers import Dense
+
+from sklearn.preprocessing import StandardScaler
+from sklearn.metrics import confusion_matrix
+
+from time import time
+
+
+df = pd.read_csv('../data/use_for_predictions.csv')
+df = df.loc[df['result'] != 0.5].copy()
+df.reset_index(inplace=True)
+df.drop(columns=['index'], inplace=True)
+
 
 def clean_df_y(df):
     '''
-    Input: clean dataframe
-    Output: cleaner dataframe, results as a 1D numpy array
+    Input:
+    df = clean dataframe
+
     Creates bins for all differences. All bins labels are roughly calculated
     based on winning probability from original ELO equation:
+
     1/(1+10^m), where m = (elo difference)/400
-    Also, bins the start time'''
+    Also, bins the start time
+    Returns:
+
+    df = cleaner dataframe
+    y = results as a 1D numpy array
+    '''
 
     dif_bn = list(range(-1000, -600, 100))
     dif_bn.extend(list(range(-600, -250, 50)))
@@ -44,6 +65,9 @@ def clean_df_y(df):
     return df, y
 
 
+df, y = clean_df_y(df)
+
+
 def xy_tt(X, y, splt):
     '''
     Input:
@@ -51,15 +75,8 @@ def xy_tt(X, y, splt):
     y = results
     splt = desired split for X and y
 
-    Output:
-    X_train = array to train
-    X_test = array to test
-    y_train = results to train
-    y_test = results to test predictions
-    X = array used for prediction
-
     If a number less than 1 is given for split, the split is considered for
-    training data percentage. 
+    training data percentage.
     If a number greater than 1 is given for split, the split is considered for
     number of test data samples.
 
@@ -71,6 +88,13 @@ def xy_tt(X, y, splt):
 
     splt=100
     training data = 900 samples, test data = 100 samples
+
+    Returns:
+    X_train = array to train
+    X_test = array to test
+    y_train = results to train
+    y_test = results to test predictions
+    X = array used for prediction
     '''
 
     if splt > 1:
@@ -108,7 +132,7 @@ def xy_custom(df, y, splt, cols):
     elif len(cols) == 2:
         if cols == ['diff_bin', 'color']:
             X = df_n.values
-        elif (cols[0]=='diff_bin' or cols[0]=='color') and cols[1] != 'color':
+        elif (cols[0] == 'diff_bin' or cols[0] == 'color') and cols[1] != 'color':
             df_n = gd(df_n, prefix='a', drop_first=True, columns=[cols[1]])
             X = df_n.values
         else:
@@ -120,7 +144,7 @@ def xy_custom(df, y, splt, cols):
         if cols[0] == 'diff_bin' and cols[1] == 'color':
             df_n = gd(df_n, prefix='a', drop_first=True, columns=[cols[2]])
             X = df_n.values
-        elif (cols[0]=='diff_bin' or cols[0]=='color') and cols[1] != 'color':
+        elif (cols[0] == 'diff_bin' or cols[0] == 'color') and cols[1] != 'color':
             df_n = gd(df_n, prefix='a', drop_first=True, columns=[cols[1]])
             df_n = gd(df_n, prefix='b', drop_first=True, columns=[cols[2]])
             X = df_n.values
@@ -157,49 +181,70 @@ def xy_custom(df, y, splt, cols):
     return X_train, X_test, y_train, y_test, X
 
 
-'''Using 5 pre-game parameters to predict: 
-   1. Elo difference (binned)
-   2. Assigned color (1 for White, 0 for Black)
-   3. Start time of the game (binned and split into dummy columns)
-   4. Game time (split into dummy columns)
-   5. Day of the week (split into dummy columns)
-   
-   There are 31 different combinations to use for predictions. Using
-   numbers as the parameters are listed as their names:
-   
-   1, 2, 3, 4, 5 => 5 combos
-   1+2, 1+3, 1+4, 1+5, 2+3, 2+4, 2+5, 3+4, 3+5, 4+5 => 10 combos
-   1+2+3, 1+2+4, 1+2+5, 1+3+4, 1+3+5, 1+4+5, 2+3+4, 2+3+5, 2+4+5, 3+4+5 => 10 combos
-   1+2+3+4, 1+2+3+5, 1+2+4+5, 1+3+4+5, 2+3+4+5 => 5 combos
-   1+2+3+4+5 => 1 combination
-   
-   Ideally I would like to try all of them to find out which exact combination
-   determines the most accurate result.
+def _classifier():
 
-   Running 20 of these on Kaggle Kernel. Only ones that are not being tested
-   are the ones that don't have ELO difference.
-   '''
+    classifier = Sequential()
+    classifier.add(Dense(units=64, activation='softmax', input_dim=X.shape[1]))
+    classifier.add(Dense(units=128, activation='relu'))
+    classifier.add(Dense(units=32, activation='softmax'))
+    classifier.add(Dense(units=1, activation='sigmoid'))
+    classifier.compile(
+        optimizer='nadam', loss='binary_crossentropy', metrics=['accuracy'])
 
-all_cols_try = [
-    ['diff_bin'], ['color'], ['time_bin'], ['game_time'], ['weekday'],
+    return classifier
 
-    ['diff_bin', 'color'], ['diff_bin', 'time_bin'], ['diff_bin', 'game_time'],
-    ['diff_bin', 'weekday'], ['color', 'time_bin'], ['color', 'game_time'],
-    ['color', 'weekday'], ['time_bin', 'game_time'], ['time_bin', 'weekday'],
-    ['game_time', 'weekday'],
 
-    ['diff_bin', 'color', 'time_bin'], ['diff_bin', 'color', 'game_time'],
-    ['diff_bin', 'color', 'weekday'], ['diff_bin', 'time_bin', 'game_time'],
-    ['diff_bin', 'time_bin', 'weekday'], ['diff_bin', 'game_time', 'weekday'],
-    ['color', 'time_bin', 'game_time'], ['color', 'time_bin', 'weekday'],
-    ['color', 'game_time', 'weekday'], ['weekday', 'time_bin', 'game_time'],
-
-    ['diff_bin', 'color', 'time_bin', 'game_time'],
-    ['diff_bin', 'color', 'time_bin', 'weekday'],
-    ['diff_bin', 'color', 'game_time', 'weekday'],
+all_cols = [
+    ['diff_bin', 'color', 'time_bin', 'game_time', 'weekday'],
     ['diff_bin', 'time_bin', 'game_time', 'weekday'],
-    ['color', 'weekday', 'time_bin', 'game_time'],
+    ['diff_bin', 'color', 'time_bin', 'weekday'],
+    ['diff_bin', 'time_bin', 'weekday'],
+    ['diff_bin', 'color', 'time_bin', 'game_time'],
+    ['color', 'time_bin', 'game_time', 'weekday'],
+    ['time_bin', 'game_time', 'weekday'],
+    ['color', 'time_bin', 'weekday'],
+    ['diff_bin', 'time_bin', 'game_time'],
+    ['diff_bin', 'color', 'time_bin'],
+    ['diff_bin', 'time_bin'],
+    ['color', 'time_bin', 'game_time'],
+    ['diff_bin', 'color', 'game_time', 'weekday'],
+    ['diff_bin', 'game_time', 'weekday'],
+    ['diff_bin', 'color', 'weekday'],
+    ['diff_bin', 'weekday'],
+    ['color', 'game_time', 'weekday'],
+    ['diff_bin', 'color', 'game_time'],
+    ['diff_bin', 'game_time'],
+    ['diff_bin', 'color'],
+    ['diff_bin']]
 
-    ['diff_bin', 'color', 'game_time', 'time_bin', 'weekday']
 
-]
+results = {}
+
+lossess = ['mae', 'binary_crossentropy']
+optimiz = ['nadam', 'rmsprop', 'adagrad', 'adam']
+
+for ls in lossess:
+    for opm in optimiz:
+        for clm in all_cols:
+            st = time()
+            X_train, X_test, y_train, y_test, X = xy_custom(df, y, 100, clm)
+            std_sclr = StandardScaler()
+            X_train = std_sclr.fit_transform(X_train)
+            X_test = std_sclr.fit_transform(X_test)
+            for bs in [8, 20, 44, 92]:
+                print(bs)
+                for ep in [50, 100, 200]:
+                    classifier = _classifier(ls, opm)
+                    classifier.fit(X_train, y_train, batch_size=bs, epochs=ep,
+                                   class_weight='balanced', shuffle=False,
+                                   verbose=2)
+                    y_pred = classifier.predict(X_test)
+                    y_pred = (y_pred > 0.5)
+                    cm = confusion_matrix(y_test, y_pred)
+                    results[(f'c{clm}-b{bs}-e{ep}-l{ls}-o{opm}')] = [
+                        cm, (f'{((cm[0][0]+cm[1][1])/cm.sum()*100).round(1)}%')]
+        print(clm)
+        print(opm)
+        print(ls)
+        print(results)
+        print(time() - st)

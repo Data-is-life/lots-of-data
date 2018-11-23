@@ -9,30 +9,35 @@ plt.style.use('seaborn-whitegrid')
 
 
 def custom_round_int(x, base=20):
-    '''Helps to round digits'''
+    '''Helps to round integers'''
 
     return int(base * round(float(x) / base))
 
 
 def custom_round_flt(x, base=.01):
-    '''Helps to round digits'''
+    '''Helps to round floats under 1.00'''
 
     return base * round(float(x) / base)
 
 
 def get_graph_df(file_name):
     '''
+    Input:
+    file_name = csv file to clean for graphing
+
     Creates the dataframe from the file
     Converts the time used from seconds to percentage of the time allowed 
     Bins:
-     - difference in elo
-     - elo
-     - opp's elo
-     - Number of moves
-     - Time used
-     - Time used by opp
+    - difference in elo
+    - elo
+    - opp's elo
+    - Number of moves
+    - Time used
+    - Time used by opp
+
     returns:
-    dataframe ready to be graphed'''
+    df = dataframe ready to be graphed
+    '''
 
     df = pd.read_csv(file_name)
 
@@ -79,20 +84,22 @@ def get_graph_df(file_name):
     df.loc[:, 'bin_opp_time_used'] = pd.cut(x=df.opp_time_used, bins=bn_ot,
                                             labels=bn_ot[:-1]).astype(float)
 
+    df.drop(columns=['elo', 'opp_elo', 'diff', 'num_moves', 'time_used',
+                     'opp_time_used'], inplace=True)
+
     return df
 
 
 def mn_ct_df(df, col_name):
     '''
     Input:
-    df = dataframe for analysis loaded from the csv file
-    col_name = column name to evaluate
+    - df = dataframe for analysis loaded from the csv file
+    - col_name = column name to evaluate
 
-    Creates two dataframes from the main df
-     - first df is mean of all the values based on the selected column
-     - second df is the sum of all the values based on the selected column
-    returns:
-    mean df, count df'''
+    Creates two dataframes from the main df and returns:
+    - mndf = mean of all the values based on the selected column
+    - ctdf = sum of all the values based on the selected column
+    '''
 
     mndf = df.groupby(col_name).mean()
     mndf.reset_index(inplace=True)
@@ -105,19 +112,18 @@ def mn_ct_df(df, col_name):
 def graph_lim(mndf, ctdf, col_name):
     '''
     Input:
-    mndf = dataframe created for mean values of specified column
-    ctdf = dataframe created for sum values of specified column
-    col_name = column name to evaluate
+    - mndf = dataframe created for mean values of specified column
+    - ctdf = dataframe created for sum values of specified column
+    - col_name = column name to evaluate
 
-    Creates graph limits of the y-axis
+    Creates graph limits of the y-axis and returns:
     - mnm = minimum y-axis value for mean value graph
     - mxm = maximum y-axis value for mean value graph
     - rnm = interval y-axis value for mean value graph
     - mnc = minimum y-axis value for sum value graph
     - mxc = maximum y-axis value for sum value graph
     - inc = interval y-axis value for sum value graph
-    returns:
-    mnm, mxm, rnm, mnc, mxc, inc'''
+    '''
 
     for num in range(len(mndf)):
         if ctdf.loc[num, 'result'] < 5:
@@ -161,14 +167,12 @@ def x_axis_lims(ctdf, col_name):
     ctdf = dataframe created for sum values of specified column
     col_name = column name to evaluate
 
-    Creates graph limits of the x-axis
+    Creates graph limits of the x-axis and returns:
     - xmn = minimum x-axis value for both graphs
     - xmx = maximum x-axis value for both graphs
     - xin = interval x-axis value for both graphs
     - smyx = second highest y-axis value for sum value graph
-
-    returns:
-    xmn, xmx, xin, smyx'''
+    '''
 
     xmn = custom_round_int(ctdf[col_name].min(), 10)
     xmx = custom_round_int(ctdf[col_name].max(), 10)
@@ -295,7 +299,8 @@ def castled_or_not(df):
 
 
 def opp_castled_or_not(df):
-    '''Creates graph for results based if and where the opposition castled the king'''
+    '''Creates graph for results based if and where
+       the opposition castled the king'''
 
     mndf, ctdf = mn_ct_df(df, 'opp_castled')
     mnm, mxm, rnm, mnc, mxc, inc = graph_lim(mndf, ctdf, 'opp_castled')
@@ -528,7 +533,7 @@ def move_num_castled(df):
 
 
 def opp_move_num_castled(df):
-    '''Creates graph for results based on move number if the opposition castled'''
+    '''Creates graph for results based on move number the opposition castled'''
 
     mndf, ctdf = mn_ct_df(df, 'opp_castled_on')
     mnm, mxm, rnm, mnc, mxc, inc = graph_lim(mndf, ctdf, 'opp_castled_on')
@@ -556,13 +561,14 @@ def opp_move_num_castled(df):
 
 
 def result_by_time_used(df):
-    '''Creates graph for results based on percentage of allowed time used by the player'''
+    '''Creates graph for results based on
+       percentage of allowed time used by the player'''
 
-    mndf, ctdf = mn_ct_df(df, 'time_used')
-    mnm, mxm, rnm, mnc, mxc, inc = graph_lim(mndf, ctdf, 'time_used')
-    xmn, xmx, xin, smyx = x_axis_lims(ctdf, 'time_used')
+    mndf, ctdf = mn_ct_df(df, 'bin_time_used')
+    mnm, mxm, rnm, mnc, mxc, inc = graph_lim(mndf, ctdf, 'bin_time_used')
+    xmn, xmx, xin, smyx = x_axis_lims(ctdf, 'bin_time_used')
 
-    mndf.plot.scatter(x='time_used', y='result', legend=False)
+    mndf.plot.scatter(x='bin_time_used', y='result', legend=False)
     plt.title('Result by the Amount of Time Used (in %)')
     plt.xlabel('Amount of Time Used(%)')
     plt.xlim(xmn, xmx + 5)
@@ -571,7 +577,7 @@ def result_by_time_used(df):
     plt.ylim(mnm, mxm)
     plt.yticks(ticks=np.arange(mnm, mxm + rnm / 2, step=rnm))
 
-    ctdf.plot.scatter(x='time_used', y='result', legend=False)
+    ctdf.plot.scatter(x='bin_time_used', y='result', legend=False)
     plt.title('# of Games by the Amount of Time Used (in %)')
     plt.xlabel('Amount of Time Used(%)')
     plt.xlim(xmn, xmx + 5)
@@ -584,13 +590,14 @@ def result_by_time_used(df):
 
 
 def result_by_opp_time_used(df):
-    '''Creates graph for results based on percentage of allowed time used by the opposition'''
+    '''Creates graph for results based on
+       percentage of allowed time used by the opposition'''
 
-    mndf, ctdf = mn_ct_df(df, 'opp_time_used')
-    mnm, mxm, rnm, mnc, mxc, inc = graph_lim(mndf, ctdf, 'opp_time_used')
-    xmn, xmx, xin, smyx = x_axis_lims(ctdf, 'opp_time_used')
+    mndf, ctdf = mn_ct_df(df, 'bin_opp_time_used')
+    mnm, mxm, rnm, mnc, mxc, inc = graph_lim(mndf, ctdf, 'bin_opp_time_used')
+    xmn, xmx, xin, smyx = x_axis_lims(ctdf, 'bin_opp_time_used')
 
-    mndf.plot.scatter(x='opp_time_used', y='result', legend=False)
+    mndf.plot.scatter(x='bin_opp_time_used', y='result', legend=False)
     plt.title('Result by the Amount of Time Used by Opposition(in %)')
     plt.xlabel('Amount of Time Used by Opposition(%)')
     plt.xlim(xmn, xmx + 5)
@@ -599,7 +606,7 @@ def result_by_opp_time_used(df):
     plt.ylim(mnm, mxm)
     plt.yticks(ticks=np.arange(mnm, mxm + rnm / 2, step=rnm))
 
-    ctdf.plot.scatter(x='opp_time_used', y='result', legend=False)
+    ctdf.plot.scatter(x='bin_opp_time_used', y='result', legend=False)
     plt.title('# of Games by the Amount of Time Used by Opposition(in %)')
     plt.xlabel('Amount of Time Used by Opposition(%)')
     plt.xlim(xmn, xmx + 5)

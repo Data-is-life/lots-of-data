@@ -6,7 +6,7 @@ import numpy as np
 from ast import literal_eval
 from pandas import DataFrame, to_datetime, to_timedelta, to_numeric
 
-'''All functions I used to clean up game log from Chess.com'''
+'''All functions used to clean up game log from Chess.com'''
 
 
 def custom_round(x, base=20):
@@ -17,9 +17,13 @@ def custom_round(x, base=20):
 
 def initial_chess_data(filename):
     '''First function:
-    Input = Game log from Chess.com
+
+    Input:
+    filename = Game log from Chess.com
     Cleans the file for any unnessacery lines from the game log file
-    Output = All game information as a text'''
+
+    Returns:
+    icd_t = All game information as a text'''
 
     with open(filename, 'r+') as file:
         icd_l = file.readlines()
@@ -31,10 +35,14 @@ def initial_chess_data(filename):
 
 def chess_data_cleanup(chess_text):
     '''Second function:
-    Input = All game information as a text
+
+    Input:
+    chess_text = All game information as a text
     Creates a df where one row is for game information, the following row
     is moves in that game.
-    Output = df with game information and moves'''
+
+    Returns:
+    df = dataframe with game information and moves'''
 
     chess_text = chess_text.replace('[', "").replace(']', "")
     chess_text = chess_text.replace('\n', ' ')
@@ -88,10 +96,13 @@ def chess_data_cleanup(chess_text):
 
 def data_cleaning_1(df):
     '''Third function:
+
     Input:
     df = df with all information
-    creates two dfs. First df is all games information. Second df is for all
+
+    Creates two dfs. First df is all games information. Second df is for all
     the moves in those games.
+
     Output:
     m_df = moves df with all the moves
     d_df = information df with all the game information'''
@@ -146,9 +157,12 @@ def data_cleaning_1(df):
 
 def data_cleaning_2(m_df):
     '''Fourth function:
+
     Input:
     m_df = Moves df
+
     Creates a new df that has time information and cleans moves df column names
+
     Output:
     t_df = Moves time df - all the times for moves
     m_df = Moves df - Fixed column names'''
@@ -177,11 +191,14 @@ def data_cleaning_2(m_df):
 
 def data_cleaning_3(t_df, d_df):
     '''Fifth function:
+
     Input:
     t_df = Move times df
     d_df = Game information df
+
     Cleans the times df to fix the games that give extra time after each move
-    Output:
+
+    Returns:
     t_df = Moves time df - Fixed times'''
 
     t_df = t_df.apply(to_timedelta, errors='coerce')
@@ -201,12 +218,15 @@ def data_cleaning_3(t_df, d_df):
 
 def data_cleaning_4(m_df, t_df, d_df):
     '''Sixth function:
+
     Input:
     m_df = Moves df
     t_df = Move times df
     d_df = Game information df
+
     Creates four new df moves and move times for white and black pieces.
-    Output:
+
+    Returns:
     wh_m_df = All moves by player with white pieces
     wh_t_df = All moves time by player with white pieces
     bl_m_df = All moves by player with black pieces
@@ -268,13 +288,16 @@ def data_cleaning_4(m_df, t_df, d_df):
 
 def data_cleaning_5(c_t_df, t_df, d_df, col):
     '''Seventh function:
+
     Input:
     c_t_df = Black or white pieces moves time df
     t_df = Move times df
     d_df = Game information df
     col = Column name
+
     Cleans the moves time df.
-    Output:
+
+    Returns:
     tm_df = All moves by player with white pieces'''
 
     tm_df = c_t_df.shift(periods=1, axis=1).copy()
@@ -291,10 +314,13 @@ def data_cleaning_5(c_t_df, t_df, d_df, col):
 
 def help_func1(m_df, d_df):
     '''Helper function:
+    
     Input:
     m_df = Black or white pieces moves
+    
     Gets castling information.
-    Output:
+    
+    Returns:
     cast_list = for every game it assigns a value if the player castled.
                 1 if castled King side
                 0 if castled Queen side
@@ -321,6 +347,7 @@ def help_func1(m_df, d_df):
 
 def data_cleaning_6(d_df, m_df, bl_m_df, wh_m_df, wh_t_df, bl_t_df):
     '''Eighth function:
+    
     Input:
     d_df = Game information df
     m_df = Move times df
@@ -328,8 +355,10 @@ def data_cleaning_6(d_df, m_df, bl_m_df, wh_m_df, wh_t_df, bl_t_df):
     wh_m_df = All moves by player with white pieces
     wh_t_df = All moves time by player with white pieces
     bl_t_df = All moves time by player with black pieces
+    
     Adds bunch of information to game information df
-    Output:
+    
+    Returns:
     d_df = Game information df - bunch of new columns'''
 
     # Round all times to an integer
@@ -412,12 +441,15 @@ def data_cleaning_6(d_df, m_df, bl_m_df, wh_m_df, wh_t_df, bl_t_df):
 
 def data_cleaning_7(d_df, wh_tm_df, bl_tm_df):
     '''Ninth function:
+    
     Input:
     d_df = Game information df
     bl_m_df = All moves by player with black pieces
     wh_m_df = All moves by player with white pieces
+    
     Adds bunch of information to game information df
-    Output:
+    
+    Returns:
     d_df = Game information df - bunch of new columns'''
 
     # Max time each player to make a move
@@ -455,9 +487,10 @@ def data_cleaning_7(d_df, wh_tm_df, bl_tm_df):
     d_df.drop([d_df_len - 1], inplace=True)
 
     # Changed stings of how the player won to integers
-    d_df['won_by'].replace(['checkmate', 'resignation', 'time', 'material', 'agreement',
-                            'repetition', 'abandoned', 'stalemate', 'rule'],
-                           list(reversed(range(9))), inplace=True)
+    d_df['won_by'].replace(['checkmate', 'resignation', 'time', 'material',
+                            'agreement', 'repetition', 'abandoned',
+                            'stalemate', 'rule'], list(reversed(range(9))),
+                            inplace=True)
 
     d_df.drop(columns=['white_elo', 'black_elo', 'white_max_move',
                      'black_max_move'], inplace=True)
@@ -467,10 +500,20 @@ def data_cleaning_7(d_df, wh_tm_df, bl_tm_df):
 
 def main_cleanup(file_name):
     '''Tenth function:
+
     Input:
     file_name = Game log from Chess.com
-    This puts all the functions in one function
-    Output:
+
+    This puts all the functions above in one function to compile
+    Also, saves the following csv files in data folder:
+    - moves_initial.csv = Initial moves information with time for all games
+    - moves.csv - All moves information without time for all games split
+      into columns for each move
+    - main_with_all_info.csv = All the game information except each move
+    - use_for_predictions.csv = Used for building prediction models
+    - use_for_analysis.csv = Used to run analysis
+
+    Returns:
     df_model = Use for building prediction models
     df_analysis = Use for analysis
     df_final = All the game information'''
