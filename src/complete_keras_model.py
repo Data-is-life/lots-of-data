@@ -16,12 +16,6 @@ from sklearn.metrics import confusion_matrix
 from time import time
 
 
-df = pd.read_csv('../data/use_for_predictions.csv')
-df = df.loc[df['result'] != 0.5].copy()
-df.reset_index(inplace=True)
-df.drop(columns=['index'], inplace=True)
-
-
 def clean_df_y(df):
     '''
     Input:
@@ -64,6 +58,10 @@ def clean_df_y(df):
 
     return df, y
 
+df = pd.read_csv('../data/use_for_predictions.csv')
+df = df.loc[df['result'] != 0.5].copy()
+df.reset_index(inplace=True)
+df.drop(columns=['index'], inplace=True)
 
 df, y = clean_df_y(df)
 
@@ -118,6 +116,23 @@ def xy_tt(X, y, splt):
 
 
 def xy_custom(df, y, splt, cols):
+    '''
+    Input:
+    df = cleaned dataframe
+    y = all result values in an Numpy Array
+    splt = Split size for test set in % as 0.80 or # as 200
+    cols = list of columns to create X values to predict over
+
+    This function creates X array, X_train, X_test, y_train, and y_test.
+    If the columns are not elo difference or color, it creates dummy columns.
+
+    Returns:
+    X = values to run predictions 
+    X_train = training prediction set
+    X_test = testing prediction set
+    y_train = training result set
+    y_test = testing result set
+    '''
 
     df_n = df[cols].copy()
 
@@ -181,7 +196,22 @@ def xy_custom(df, y, splt, cols):
     return X_train, X_test, y_train, y_test, X
 
 
-def _classifier():
+def ann_classifier(optm, lss):
+    '''
+    Input:
+    optm = Optimizer
+    lss = Loss Function
+
+    Creates Keras Sequential Model.
+    input layer: 64 units, softmax activation
+    hidden layer # 1: 128 units, relu activation
+    hidden layer # 2: 32 units, softmax activation
+    output layer: sigmoid activation
+    metrics: 'accuracy'
+
+    Returns:
+    classifier = Created model
+    '''
 
     classifier = Sequential(optm, lss)
     classifier.add(Dense(units=64, activation='softmax', input_dim=X.shape[1]))
@@ -193,7 +223,7 @@ def _classifier():
 
     return classifier
 
-
+# They are sorted decsending by the number of columns
 all_cols = [
     ['diff_bin', 'color', 'time_bin', 'game_time', 'weekday'],
     ['diff_bin', 'time_bin', 'game_time', 'weekday'],
@@ -212,11 +242,18 @@ all_cols = [
     ['diff_bin', 'color'],
     ['diff_bin']]
 
-
+# Creating an empty dictionary to store all results
 results = {}
 
+# Three losses cosidered to iterate over
 lossess = ['mae', 'binary_crossentropy', 'mse']
+# Five optimizers to iterate over
 optimiz = ['nadam', 'rmsprop', 'adagrad', 'adam', 'adadelta']
+# Four batch sizes to test the model
+b_s = [8, 20, 44, 92]
+# Three epochs to run all batches
+e_p = [50, 100, 200]
+
 
 for ls in lossess:
     for opm in optimiz:
@@ -226,10 +263,10 @@ for ls in lossess:
             std_sclr = StandardScaler()
             X_train = std_sclr.fit_transform(X_train)
             X_test = std_sclr.fit_transform(X_test)
-            for bs in [8, 20, 44, 92]:
+            for bs in b_s:
                 print(bs)
-                for ep in [50, 100, 200]:
-                    classifier = _classifier(ls, opm)
+                for ep in e_p:
+                    classifier = ann_classifier(ls, opm)
                     classifier.fit(X_train, y_train, batch_size=bs, epochs=ep,
                                    class_weight='balanced', shuffle=False,
                                    verbose=2)

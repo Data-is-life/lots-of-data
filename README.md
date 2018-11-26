@@ -139,7 +139,9 @@ The repository has the following structure.
 │   ├── use_for_analysis.csv
 │   └── use_for_predictions.csv
 ├── docs_&_notes
+│   ├── calculations for bins.ods
 │   ├── Dropped_models.md
+│   ├── first_ann_run_results.csv
 │   ├── first_run_raw_adagrad_mae.md
 │   └── first_run_raw_nadam_mae.md
 ├── README.md
