@@ -58,12 +58,12 @@ def clean_df_y(df):
 
     return df, y
 
-df = pd.read_csv('../data/use_for_predictions.csv')
-df = df.loc[df['result'] != 0.5].copy()
-df.reset_index(inplace=True)
-df.drop(columns=['index'], inplace=True)
+# df = pd.read_csv('../data/use_for_predictions.csv')
+# df = df.loc[df['result'] != 0.5].copy()
+# df.reset_index(inplace=True)
+# df.drop(columns=['index'], inplace=True)
 
-df, y = clean_df_y(df)
+# df, y = clean_df_y(df)
 
 
 def xy_tt(X, y, splt):
@@ -224,59 +224,59 @@ def ann_classifier(optm, lss):
     return classifier
 
 # They are sorted decsending by the number of columns
-all_cols = [
-    ['diff_bin', 'color', 'time_bin', 'game_time', 'weekday'],
-    ['diff_bin', 'time_bin', 'game_time', 'weekday'],
-    ['diff_bin', 'color', 'time_bin', 'weekday'],
-    ['diff_bin', 'time_bin', 'weekday'],
-    ['diff_bin', 'color', 'time_bin', 'game_time'],
-    ['diff_bin', 'time_bin', 'game_time'],
-    ['diff_bin', 'color', 'time_bin'],
-    ['diff_bin', 'time_bin'],
-    ['diff_bin', 'color', 'game_time', 'weekday'],
-    ['diff_bin', 'game_time', 'weekday'],
-    ['diff_bin', 'color', 'weekday'],
-    ['diff_bin', 'weekday'],
-    ['diff_bin', 'color', 'game_time'],
-    ['diff_bin', 'game_time'],
-    ['diff_bin', 'color'],
-    ['diff_bin']]
+# all_cols = [
+#     ['diff_bin', 'color', 'time_bin', 'game_time', 'weekday'],
+#     ['diff_bin', 'time_bin', 'game_time', 'weekday'],
+#     ['diff_bin', 'color', 'time_bin', 'weekday'],
+#     ['diff_bin', 'time_bin', 'weekday'],
+#     ['diff_bin', 'color', 'time_bin', 'game_time'],
+#     ['diff_bin', 'time_bin', 'game_time'],
+#     ['diff_bin', 'color', 'time_bin'],
+#     ['diff_bin', 'time_bin'],
+#     ['diff_bin', 'color', 'game_time', 'weekday'],
+#     ['diff_bin', 'game_time', 'weekday'],
+#     ['diff_bin', 'color', 'weekday'],
+#     ['diff_bin', 'weekday'],
+#     ['diff_bin', 'color', 'game_time'],
+#     ['diff_bin', 'game_time'],
+#     ['diff_bin', 'color'],
+#     ['diff_bin']]
 
-# Creating an empty dictionary to store all results
-results = {}
+# # Creating an empty dictionary to store all results
+# results = {}
 
-# Three losses cosidered to iterate over
-lossess = ['mae', 'binary_crossentropy', 'mse']
-# Five optimizers to iterate over
-optimiz = ['nadam', 'rmsprop', 'adagrad', 'adam', 'adadelta']
-# Four batch sizes to test the model
-b_s = [8, 20, 44, 92]
-# Three epochs to run all batches
-e_p = [50, 100, 200]
+# # Three losses cosidered to iterate over
+# lossess = ['mae', 'binary_crossentropy', 'mse']
+# # Five optimizers to iterate over
+# optimiz = ['nadam', 'rmsprop', 'adagrad', 'adam', 'adadelta']
+# # Four batch sizes to test the model
+# b_s = [8, 20, 44, 92]
+# # Three epochs to run all batches
+# e_p = [50, 100, 200]
 
 
-for ls in lossess:
-    for opm in optimiz:
-        for clm in all_cols:
-            st = time()
-            X_train, X_test, y_train, y_test, X = xy_custom(df, y, 100, clm)
-            std_sclr = StandardScaler()
-            X_train = std_sclr.fit_transform(X_train)
-            X_test = std_sclr.fit_transform(X_test)
-            for bs in b_s:
-                print(bs)
-                for ep in e_p:
-                    classifier = ann_classifier(ls, opm)
-                    classifier.fit(X_train, y_train, batch_size=bs, epochs=ep,
-                                   class_weight='balanced', shuffle=False,
-                                   verbose=2)
-                    y_pred = classifier.predict(X_test)
-                    y_pred = (y_pred > 0.5)
-                    cm = confusion_matrix(y_test, y_pred)
-                    results[(f'c{clm}-b{bs}-e{ep}-l{ls}-o{opm}')] = [
-                        cm, (f'{((cm[0][0]+cm[1][1])/cm.sum()*100).round(1)}%')]
-        print(clm)
-        print(opm)
-        print(ls)
-        print(results)
-        print(time() - st)
+# for ls in lossess:
+#     for opm in optimiz:
+#         for clm in all_cols:
+#             st = time()
+#             X_train, X_test, y_train, y_test, X = xy_custom(df, y, 100, clm)
+#             std_sclr = StandardScaler()
+#             X_train = std_sclr.fit_transform(X_train)
+#             X_test = std_sclr.fit_transform(X_test)
+#             for bs in b_s:
+#                 print(bs)
+#                 for ep in e_p:
+#                     classifier = ann_classifier(ls, opm)
+#                     classifier.fit(X_train, y_train, batch_size=bs, epochs=ep,
+#                                    class_weight='balanced', shuffle=False,
+#                                    verbose=2)
+#                     y_pred = classifier.predict(X_test)
+#                     y_pred = (y_pred > 0.5)
+#                     cm = confusion_matrix(y_test, y_pred)
+#                     results[(f'c{clm}-b{bs}-e{ep}-l{ls}-o{opm}')] = [
+#                         cm, (f'{((cm[0][0]+cm[1][1])/cm.sum()*100).round(1)}%')]
+#         print(clm)
+#         print(opm)
+#         print(ls)
+#         print(results)
+#         print(time() - st)
