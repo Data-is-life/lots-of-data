@@ -190,7 +190,7 @@ The repository has the following structure.
     │   ├── Chess + other .txt
     │   ├── Old_chess_data_cleanup.ipynb
     │   └── Unused Chess comands.txt
-
+    └── Score.ipynb
 ```
 <u><h2>Tools used</h2></u>
 
