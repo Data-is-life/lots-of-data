@@ -134,48 +134,22 @@ def xy_custom(df, y, splt, cols):
     df_n = df[cols].copy()
 
     if len(cols) == 1:
-        if cols == ['diff_bin'] or cols == ['color']:
-            X = df_n.values
-            X = X.reshape(-1, 1)
-        else:
-            df_n = gd(df_n, prefix='a', drop_first=True, columns=cols)
-            X = df_n.values
+        X = df_n.values
 
     elif len(cols) == 2:
-        if cols == ['diff_bin', 'color']:
-            X = df_n.values
-        elif (cols[0] == 'diff_bin' or cols[0] == 'color') and cols[1] != 'color':
-            df_n = gd(df_n, prefix='a', drop_first=True, columns=[cols[1]])
-            X = df_n.values
-        else:
-            df_n = gd(df_n, prefix='a', drop_first=True, columns=[cols[0]])
-            df_n = gd(df_n, prefix='b', drop_first=True, columns=[cols[1]])
-            X = df_n.values
+        df_n = gd(df_n, prefix='a', drop_first=True, columns=[cols[1]])
+        X = df_n.values
 
     elif len(cols) == 3:
-        if cols[0] == 'diff_bin' and cols[1] == 'color':
-            df_n = gd(df_n, prefix='a', drop_first=True, columns=[cols[2]])
-            X = df_n.values
-        elif (cols[0] == 'diff_bin' or cols[0] == 'color') and cols[1] != 'color':
-            df_n = gd(df_n, prefix='a', drop_first=True, columns=[cols[1]])
-            df_n = gd(df_n, prefix='b', drop_first=True, columns=[cols[2]])
-            X = df_n.values
-        else:
-            df_n = gd(df_n, prefix='a', drop_first=True, columns=[cols[0]])
-            df_n = gd(df_n, prefix='b', drop_first=True, columns=[cols[1]])
-            df_n = gd(df_n, prefix='c', drop_first=True, columns=[cols[2]])
-            X = df_n.values
+        df_n = gd(df_n, prefix='a', drop_first=True, columns=[cols[1]])
+        df_n = gd(df_n, prefix='b', drop_first=True, columns=[cols[2]])
+        X = df_n.values
 
     elif len(cols) == 4:
-        if cols[0] == 'diff_bin' and cols[1] == 'color':
-            df_n = gd(df_n, prefix='a', drop_first=True, columns=[cols[2]])
-            df_n = gd(df_n, prefix='a', drop_first=True, columns=[cols[3]])
-            X = df_n.values
-        else:
-            df_n = gd(df_n, prefix='a', drop_first=True, columns=[cols[1]])
-            df_n = gd(df_n, prefix='b', drop_first=True, columns=[cols[2]])
-            df_n = gd(df_n, prefix='c', drop_first=True, columns=[cols[3]])
-            X = df_n.values
+        df_n = gd(df_n, prefix='a', drop_first=True, columns=[cols[1]])
+        df_n = gd(df_n, prefix='b', drop_first=True, columns=[cols[2]])
+        df_n = gd(df_n, prefix='c', drop_first=True, columns=[cols[3]])
+        X = df_n.values
 
     else:
         df_n = gd(df_n, prefix='a', drop_first=True, columns=[cols[2]])
@@ -221,31 +195,25 @@ def gc_classifier(optm, lss):
     return classifier
 
 
-def run_classifier():
+df = pd.read_csv('~/lots-of-data/data/use_for_predictions.csv')
+df = df.loc[df['result'] != 0.5].copy()
+df.reset_index(inplace=True)
+df.drop(columns=['index'], inplace=True)
 
-    df = pd.read_csv('../data/use_for_predictions.csv')
-    df = df.loc[df['result'] != 0.5].copy()
-    df.reset_index(inplace=True)
-    df.drop(columns=['index'], inplace=True)
+df, y = clean_df_y(df)
+X_train, X_test, y_train, y_test, X = xy_custom(
+    df, y, 100, ['diff_bin', 'time_bin', 'game_time', 'weekday'])
+std_sclr = StandardScaler()
+X_train = std_sclr.fit_transform(X_train)
+X_test = std_sclr.fit_transform(X_test)
 
-    df, y = clean_df_y(df)
-    X_train, X_test, y_train, y_test, X = xy_custom(
-        df, y, 100, ['diff_bin', 'time_bin', 'game_time', 'weekday'])
-    std_sclr = StandardScaler()
-    X_train = std_sclr.fit_transform(X_train)
-    X_test = std_sclr.fit_transform(X_test)
+classifier = KerasClassifier(build_fn=gc_classifier)
 
-    classifier = KerasClassifier(build_fn=gc_classifier)
+parameters = {'batch_size': [8, 20, 44], 'nb_epoch': [64, 128, 256],
+              'optm': ['nadam', 'adagrad', 'rmsprop', 'adam'],
+              'lss': ['mae', 'mse', 'binary_crossentropy']}
 
-    parameters = {'batch_size': [8, 20, 44, 92], 'nb_epoch': [64, 128, 256],
-                  'optm': ['nadam', 'adagrad', 'rmsprop', 'adam', 'adadelta'],
-                  'lss': ['mae', 'mse', 'binary_crossentropy']}
+grid_search = GridSearchCV(classifier, parameters, scoring='accuracy',
+                           cv=7, return_train_score=True, n_jobs=-2)
 
-    grid_search = GridSearchCV(classifier, parameters, scoring='accuracy', cv=11,
-                               return_train_score=True)
-
-    grid_search.fit(X=X_train, y=y_train, verbose=1)
-
-    return grid_search, classifier
-
-grid_search, classifier_ = run_classifier()
+grid_search = grid_search.fit(X=X_train, y=y_train, verbose=1)

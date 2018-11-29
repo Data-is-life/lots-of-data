@@ -4,16 +4,18 @@
 
 import pandas as pd
 import numpy as np
-from sklearn.metrics import *
+
+from pandas import get_dummies as gd
+
+from sklearn.metrics import confusion_matrix
 from sklearn.model_selection import cross_val_score
-from math import ceil
 
 
-def get_Xy_train_test(df, split_min=0.8, split_max=0.85):
+def get_Xy_train_test(df, s_min=0.8, s_max=0.85):
     '''
     df = dataframe for prediction
-    split_min = percentage for minimum split %. Default value = 0.8
-    split_max = percentage for highest split %. Default value = 0.85
+    s_min = percentage for minimum split %. Default value = 0.8
+    s_max = percentage for highest split %. Default value = 0.85
 
     Drops games that were drawn
     Bins difference in elo
@@ -31,7 +33,7 @@ def get_Xy_train_test(df, split_min=0.8, split_max=0.85):
     # df = df.loc[1000:]
 
     y = np.array(df['result'])
-    print(f'y Shape: {y.shape}')
+    
 
     dif_bins = list(range(-1000, -399, 100))
     dif_bins.extend(list(range(-390, -199, 10)))
@@ -39,40 +41,216 @@ def get_Xy_train_test(df, split_min=0.8, split_max=0.85):
     dif_bins.extend(list(range(200, 401, 10)))
     dif_bins.extend(list(range(500, 1001, 100)))
 
-    dif_labels = list(range(len(dif_bins) - 1))
+    dif_lbl = list(range(len(dif_bins) - 1))
 
-    df.loc[:, 'diff_bin'] = pd.cut(
-        df['diff'], bins=dif_bins, labels=dif_labels)
+    df.loc[:, 'diff_bin'] = pd.cut(df['diff'], bins=dif_bins, labels=dif_lbl)
 
-    df.loc[:, 'start_time_bin'] = pd.cut(
-        df['start_time'], bins=24, labels=False)
+    df.loc[:, 'time_bin'] = pd.cut(df['start_time'], bins=24, labels=False)
 
     df.drop(columns=['result', 'opp_elo', 'elo', 'start_time', 'diff', 'day'],
             inplace=True)
 
-    df = pd.get_dummies(df, prefix='gt', drop_first=True,
-                        columns=['game_time'])
-    df = pd.get_dummies(df, prefix='st', drop_first=True,
-                        columns=['start_time_bin'])
-    df = pd.get_dummies(df, prefix='wd', drop_first=True, columns=['weekday'])
+    df = gd(df, prefix='gt', drop_first=True, columns=['game_time'])
+    df = gd(df, prefix='st', drop_first=True, columns=['start_time_bin'])
+    df = gd(df, prefix='wd', drop_first=True, columns=['weekday'])
 
-    X = df.values
-    print(f'X Shape: {X.shape}')
+    X = df.values    
 
-    rand_split = np.random.randint(
-        int(len(X) * split_min), int(len(X) * split_max))
+    rand_split = np.random.randint(int(len(X) * s_min), int(len(X) * s_max))
 
     X_train = X[:rand_split]
     y_train = y[:rand_split]
     X_test = X[rand_split:]
     y_test = y[rand_split:]
 
+    print(f'X Shape: {X.shape}')
+    print(f'y Shape: {y.shape}')
     print(f'X_train Shape: {X_train.shape}')
     print(f'X_test Shape: {X_test.shape}')
     print(f'y_train Shape: {y_train.shape}')
     print(f'y_test Shape: {y_test.shape}')
 
     return X_train, X_test, y_train, y_test, X, y, df
+
+
+def clean_df_y(df):
+    '''
+    Input:
+    df = clean dataframe
+
+    Creates bins for all differences. All bins labels are roughly calculated
+    based on winning probability from original ELO equation:
+
+    1/(1+10^m), where m = (elo difference)/400
+    Also, bins the start time
+    Returns:
+
+    df = cleaner dataframe
+    y = results as a 1D numpy array
+    '''
+
+    dif_bn = list(range(-1000, -600, 100))
+    dif_bn.extend(list(range(-600, -250, 50)))
+    dif_bn.extend(list(range(-250, -200, 25)))
+    dif_bn.extend(list(range(-200, -100, 10)))
+    dif_bn.extend(list(range(-100, 105, 5)))
+    dif_bn.extend(list(range(110, 210, 10)))
+    dif_bn.extend(list(range(225, 325, 25)))
+    dif_bn.extend(list(range(350, 550, 50)))
+    dif_bn.extend(list(range(600, 1100, 100)))
+
+    dif_lbl = list(range(8))
+    dif_lbl.extend(list(range(8, 23, 2)))
+    dif_lbl.extend(list(range(23, 79)))
+    dif_lbl.extend(list(range(80, 93, 2)))
+    dif_lbl.extend(list(range(93, 100)))
+
+    df.loc[:, 'diff_bin'] = pd.cut(df['diff'], bins=dif_bn, labels=dif_lbl)
+    df.loc[:, 'time_bin'] = pd.cut(df['start_time'], bins=24, labels=False)
+
+    y = np.array(df['result'])
+
+    df.drop(columns=['result', 'opp_elo', 'elo', 'start_time', 'diff', 'day'],
+            inplace=True)
+
+    return df, y
+
+# df = pd.read_csv('../data/use_for_predictions.csv')
+# df = df.loc[df['result'] != 0.5].copy()
+# df.reset_index(inplace=True)
+# df.drop(columns=['index'], inplace=True)
+
+# df, y = clean_df_y(df)
+
+
+def xy_tt(X, y, splt):
+    '''
+    Input:
+    X = array used for prediction
+    y = results
+    splt = desired split for X and y
+
+    If a number less than 1 is given for split, the split is considered for
+    training data percentage.
+    If a number greater than 1 is given for split, the split is considered for
+    number of test data samples.
+
+    Example:
+    Total # of samples = 1,000
+
+    splt=0.90
+    training data = 900 samples, test data = 100 samples
+
+    splt=100
+    training data = 900 samples, test data = 100 samples
+
+    Returns:
+    X_train = array to train
+    X_test = array to test
+    y_train = results to train
+    y_test = results to test predictions
+    X = array used for prediction
+    '''
+
+    if splt > 1:
+        splitze = len(X) - int(splt)
+    else:
+        splitze = int(len(X) * splt)
+
+    X_train = X[:splitze]
+    y_train = y[:splitze]
+    X_test = X[splitze:]
+    y_test = y[splitze:]
+
+    print(f'y Shape: {y.shape}')
+    print(f'X Shape: {X.shape}')
+    print(f'X_train Shape: {X_train.shape}')
+    print(f'X_test Shape: {X_test.shape}')
+    print(f'y_train Shape: {y_train.shape}')
+    print(f'y_test Shape: {y_test.shape}')
+
+    return X_train, X_test, y_train, y_test
+
+
+def xy_custom(df, y, splt, cols):
+    '''
+    Input:
+    df = cleaned dataframe
+    y = all result values in an Numpy Array
+    splt = Split size for test set in % as 0.80 or # as 200
+    cols = list of columns to create X values to predict over
+
+    This function creates X array, X_train, X_test, y_train, and y_test.
+    If the columns are not elo difference or color, it creates dummy columns.
+
+    Returns:
+    X = values to run predictions 
+    X_train = training prediction set
+    X_test = testing prediction set
+    y_train = training result set
+    y_test = testing result set
+    '''
+
+    df_n = df[cols].copy()
+
+    if len(cols) == 1:
+        if cols == ['diff_bin'] or cols == ['color']:
+            X = df_n.values
+            X = X.reshape(-1, 1)
+        else:
+            df_n = gd(df_n, prefix='a', drop_first=True, columns=cols)
+            X = df_n.values
+
+    elif len(cols) == 2:
+        if cols == ['diff_bin', 'color']:
+            X = df_n.values
+        elif (cols[0] == 'diff_bin' or cols[0] == 'color') and cols[1] != 'color':
+            df_n = gd(df_n, prefix='a', drop_first=True, columns=[cols[1]])
+            X = df_n.values
+        else:
+            df_n = gd(df_n, prefix='a', drop_first=True, columns=[cols[0]])
+            df_n = gd(df_n, prefix='b', drop_first=True, columns=[cols[1]])
+            X = df_n.values
+
+    elif len(cols) == 3:
+        if cols[0] == 'diff_bin' and cols[1] == 'color':
+            df_n = gd(df_n, prefix='a', drop_first=True, columns=[cols[2]])
+            X = df_n.values
+        elif (cols[0] == 'diff_bin' or cols[0] == 'color') and cols[1] != 'color':
+            df_n = gd(df_n, prefix='a', drop_first=True, columns=[cols[1]])
+            df_n = gd(df_n, prefix='b', drop_first=True, columns=[cols[2]])
+            X = df_n.values
+        else:
+            df_n = gd(df_n, prefix='a', drop_first=True, columns=[cols[0]])
+            df_n = gd(df_n, prefix='b', drop_first=True, columns=[cols[1]])
+            df_n = gd(df_n, prefix='c', drop_first=True, columns=[cols[2]])
+            X = df_n.values
+
+    elif len(cols) == 4:
+        if cols[0] == 'diff_bin' and cols[1] == 'color':
+            df_n = gd(df_n, prefix='a', drop_first=True, columns=[cols[2]])
+            df_n = gd(df_n, prefix='a', drop_first=True, columns=[cols[3]])
+            X = df_n.values
+        else:
+            df_n = gd(df_n, prefix='a', drop_first=True, columns=[cols[1]])
+            df_n = gd(df_n, prefix='b', drop_first=True, columns=[cols[2]])
+            df_n = gd(df_n, prefix='c', drop_first=True, columns=[cols[3]])
+            X = df_n.values
+
+    else:
+        df_n = gd(df_n, prefix='a', drop_first=True, columns=[cols[2]])
+        df_n = gd(df_n, prefix='b', drop_first=True, columns=[cols[3]])
+        df_n = gd(df_n, prefix='c', drop_first=True, columns=[cols[4]])
+        X = df_n.values
+
+    X_train, X_test, y_train, y_test = xy_tt(X, y, splt)
+
+    X_train = X_train.astype('float64')
+    X_test = X_test.astype('float64')
+    y_train = y_train.astype('int64')
+    y_test = y_test.astype('int64')
+
+    return X_train, X_test, y_train, y_test, X
 
 
 def cross_val_process(classifier, X_train, y_train, X_test, y_test, cv,
