@@ -1,0 +1,14 @@
+grid_search.cv_results_
+grid_search.best_params_
+grid_search.best_score_
+
+grid_search.score(X_test, y_test)
+
+from sklearn.metrics import confusion_matrix
+y_pred = grid_search.predict(X_test)
+confusion_matrix(y_test, y_pred)
+
+> grid_search.best_params_
+{'batch_size': 8, 'lss': 'mse', 'nb_epoch': 64, 'optm': 'nadam'}
+
+

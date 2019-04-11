@@ -11,13 +11,11 @@ from pandas import DataFrame, to_datetime, to_timedelta, to_numeric
 
 def custom_round(x, base=20):
     '''Helps to round digits'''
-
     return int(base * round(float(x) / base))
 
 
 def initial_chess_data(filename):
     '''First function:
-
     Input:
     filename = Game log from Chess.com
     Cleans the file for any unnessacery lines from the game log file
@@ -35,7 +33,6 @@ def initial_chess_data(filename):
 
 def chess_data_cleanup(chess_text):
     '''Second function:
-
     Input:
     chess_text = All game information as a text
     Creates a df where one row is for game information, the following row
@@ -44,7 +41,8 @@ def chess_data_cleanup(chess_text):
     Returns:
     df = dataframe with game information and moves'''
 
-    chess_text = chess_text.replace('[', "").replace(']', "")
+    chess_text = chess_text.replace('[', '')
+    chess_text = chess_text.replace(']', '')
     chess_text = chess_text.replace('\n', ' ')
     chess_text = chess_text.replace('   ', ' ').replace('  ', ' ')
     chess_text = chess_text.replace('... ', 'b":"').replace('. ', 'w":"')
@@ -61,29 +59,22 @@ def chess_data_cleanup(chess_text):
     chess_text = chess_text.replace('" WhiteElo ', '", "WhiteElo": ')
     chess_text = chess_text.replace('" TimeControl ', '", "TimeControl": ')
     chess_text = chess_text.replace('" EndTime ', '", "EndTime": ')
-    chess_text = chess_text.replace('" BlackElo ', '", "BlackElo": ').replace(
-        '" Termination ', '", "Termination": ')
-    chess_text = chess_text.replace(
-        '"Event":"10|0 Blitz", "Date": "2017.02.16", "Round": "5", "White": "TrueMoeG", "Black": "naggvk", "Result": "0-1", "WhiteElo": "784", "BlackElo": "1210", "TimeControl": "600", "EndTime": "12:27:07 PST", "Termination": "naggvk won - game abandoned" }~{', '')
-    chess_text = chess_text.replace(
-        '"Event":"Live Chess", "Date": "2017.02.20", "Round": "-", "White": "30mate", "Black": "TrueMoeG", "Result": "0-1", "WhiteElo": "820", "BlackElo": "878", "TimeControl": "600", "EndTime": "11:55:45 PST", "Termination": "TrueMoeG won - game abandoned" }~{', '')
-    chess_text = chess_text.replace(
-        '"Event":"Live Chess", "Date": "2018.07.14", "Round": "-", "White": "Bran17", "Black": "TrueMoeG", "Result": "0-1", "WhiteElo": "1205", "BlackElo": "961", "TimeControl": "300", "EndTime": "18:02:56 PDT", "Termination": "TrueMoeG won - game abandoned" }~{', '')
-    chess_text = chess_text.replace(
-        '"Event":"Live Chess", "Date": "2017.04.26", "Round": "-", "White": "nerbenator", "Black": "TrueMoeG", "Result": "0-1", "WhiteElo": "829", "BlackElo": "842", "TimeControl": "600", "EndTime": "16:49:05 PDT", "Termination": "TrueMoeG won - game abandoned" }~{', '')
-    chess_text = chess_text.replace(
-        '"Event":"10|0 Blitz", "Date": "2017.02.16", "Round": "4", "White": "TrueMoeG", "Black": "Shuzakhan", "Result": "0-1", "WhiteElo": "845", "BlackElo": "1183", "TimeControl": "600", "EndTime": "11:58:21 PST", "Termination": "Shuzakhan won by resignation" }~{', '')
-    chess_text = chess_text.replace(' PST', '').replace(' PDT', '')
+    chess_text = chess_text.replace('" BlackElo ', '", "BlackElo": ')
+    chess_text = chess_text.replace('" Termination ', '", "Termination": ')
+    chess_text = chess_text.replace(' PST', '')
+    chess_text = chess_text.replace(' PDT', '')
     chess_text = chess_text.replace('   ', ' ').replace('  ', ' ')
+    chess_text = chess_text.replace('  ', ' ')
     chess_text = chess_text.replace('" 1w":[', '"}~{"1w":[')
     chess_text = chess_text.replace('" 1w":"', '"}~{"1w":"')
     chess_text = chess_text.replace(', "1/2-1/2 }~{', '}~{')
     chess_text = chess_text.replace(', "1-0 }~{', '}~{')
     chess_text = chess_text.replace(', "0-1 }~{', '}~{')
     chess_text = chess_text.replace(', "1-0 ', '}').replace(', "}', '}')
+    chess_text = chess_text.replace(', "1-0', '}').replace(', "0-1', '}')
 
-    cl = ''.join([num for num in chess_text]).split(
-        "~")  # I used '~' as a separator
+    # Using '~' as a separator
+    cl = ''.join([num for num in chess_text]).split("~")
 
     # Named the only column "a", so it is easier in the next function
     df = DataFrame(cl, columns=['a'])
@@ -96,7 +87,6 @@ def chess_data_cleanup(chess_text):
 
 def data_cleaning_1(df):
     '''Third function:
-
     Input:
     df = df with all information
 
@@ -119,7 +109,7 @@ def data_cleaning_1(df):
     c_df.loc[:, 'EndTime'] = to_timedelta(c_df['EndTime'])
 
     # Split moves to a new df drop columns not needed
-    m_df = c_df[c_df.index % 2 == 1].copy()
+    m_df = c_df[c_df['White'].isnull()].copy()
     m_df.sort_values('date_time', inplace=True)
     m_df.reset_index(inplace=True)
     m_df.drop(columns=[
@@ -128,7 +118,7 @@ def data_cleaning_1(df):
         'Round', 'Event'], inplace=True)
 
     # Split game information to a new df
-    d_df = c_df[c_df.index % 2 == 0].copy()
+    d_df = c_df[c_df['1w'].isnull()].copy()
 
     d_df = d_df[['Date', 'White', 'Black', 'Result', 'WhiteElo', 'BlackElo',
                  'TimeControl', 'EndTime', 'Termination', 'date_time']]
@@ -152,12 +142,17 @@ def data_cleaning_1(df):
     d_df.drop_duplicates(inplace=True)
     m_df.drop_duplicates(inplace=True)
 
+    m_df.reset_index(inplace=True)
+    m_df.drop(columns=['index'], inplace=True)
+
+    d_df.reset_index(inplace=True)
+    d_df.drop(columns=['index'], inplace=True)
+
     return m_df, d_df
 
 
 def data_cleaning_2(m_df):
     '''Fourth function:
-
     Input:
     m_df = Moves df
 
@@ -186,12 +181,16 @@ def data_cleaning_2(m_df):
     for col_name in m_df.columns:
         t_df[col_name] = t_df[col_name].str.extract(r'(\d\:\d+:\d+\.?\d)')
 
+    m_df.reset_index(inplace=True)
+    m_df.drop(columns=['index'], inplace=True)
+    t_df.reset_index(inplace=True)
+    t_df.drop(columns=['index'], inplace=True)
+
     return m_df, t_df
 
 
 def data_cleaning_3(t_df, d_df):
     '''Fifth function:
-
     Input:
     t_df = Move times df
     d_df = Game information df
@@ -203,7 +202,7 @@ def data_cleaning_3(t_df, d_df):
 
     t_df = t_df.apply(to_timedelta, errors='coerce')
     t_df = t_df.apply(to_numeric, errors='coerce')
-    t_df = t_df.div(1000000000)
+    t_df = t_df.div(1_000_000_000)
 
     t_df.loc[:, 'game_time'] = d_df['game_time']
     t_df.loc[:, 'extra_time'] = t_df['game_time'].replace([
@@ -218,7 +217,6 @@ def data_cleaning_3(t_df, d_df):
 
 def data_cleaning_4(m_df, t_df, d_df):
     '''Sixth function:
-
     Input:
     m_df = Moves df
     t_df = Move times df
@@ -267,15 +265,15 @@ def data_cleaning_4(m_df, t_df, d_df):
     for num in two_list:
         for i in range(len(wh_t_df.columns) - 1):
             wh_t_df.iloc[num, i] = wh_t_df.iloc[num, i] + ((i + 1) * 2)
-        for j in range(len(wh_t_df.columns) - 1):
-            bl_t_df.iloc[num, j] = wh_t_df.iloc[num, j] + ((j + 1) * 2)
+        for j in range(len(bl_t_df.columns) - 1):
+            bl_t_df.iloc[num, j] = bl_t_df.iloc[num, j] + ((j + 1) * 2)
 
     # Add 5 seconds to all the moves for games that give +5 sec/move
     for num in five_list:
         for i in range(len(wh_t_df.columns) - 1):
             wh_t_df.iloc[num, i] = wh_t_df.iloc[num, i] + ((i + 1) * 5)
-        for j in range(len(wh_t_df.columns) - 1):
-            bl_t_df.iloc[num, j] = wh_t_df.iloc[num, j] + ((j + 1) * 5)
+        for j in range(len(bl_t_df.columns) - 1):
+            bl_t_df.iloc[num, j] = bl_t_df.iloc[num, j] + ((j + 1) * 5)
 
     # Change time values where time is really high
     for num in wh_t_df.columns:
@@ -288,7 +286,6 @@ def data_cleaning_4(m_df, t_df, d_df):
 
 def data_cleaning_5(c_t_df, t_df, d_df, col):
     '''Seventh function:
-
     Input:
     c_t_df = Black or white pieces moves time df
     t_df = Move times df
@@ -314,12 +311,11 @@ def data_cleaning_5(c_t_df, t_df, d_df, col):
 
 def help_func1(m_df, d_df):
     '''Helper function:
-    
     Input:
     m_df = Black or white pieces moves
-    
+
     Gets castling information.
-    
+
     Returns:
     cast_list = for every game it assigns a value if the player castled.
                 1 if castled King side
@@ -332,13 +328,17 @@ def help_func1(m_df, d_df):
     cast_list = []
     cast_w_list = []
     for i in range(len(d_df)):
-        a = list(m_df.iloc[i])
-        if "O-O" in a:
-            cast_list.append(a.index("O-O") + 1)
-            cast_w_list.append(1)
-        elif "O-O-O" in a:
-            cast_list.append(a.index("O-O-O") + 1)
-            cast_w_list.append(0)
+        if i in m_df.index:
+            a = list(m_df.iloc[i])
+            if "O-O" in a:
+                cast_list.append(a.index("O-O") + 1)
+                cast_w_list.append(1)
+            elif "O-O-O" in a:
+                cast_list.append(a.index("O-O-O") + 1)
+                cast_w_list.append(0)
+            else:
+                cast_list.append(0)
+                cast_w_list.append(-1)
         else:
             cast_list.append(0)
             cast_w_list.append(-1)
@@ -347,7 +347,6 @@ def help_func1(m_df, d_df):
 
 def data_cleaning_6(d_df, m_df, bl_m_df, wh_m_df, wh_t_df, bl_t_df):
     '''Eighth function:
-    
     Input:
     d_df = Game information df
     m_df = Move times df
@@ -355,17 +354,15 @@ def data_cleaning_6(d_df, m_df, bl_m_df, wh_m_df, wh_t_df, bl_t_df):
     wh_m_df = All moves by player with white pieces
     wh_t_df = All moves time by player with white pieces
     bl_t_df = All moves time by player with black pieces
-    
+
     Adds bunch of information to game information df
-    
+
     Returns:
     d_df = Game information df - bunch of new columns'''
 
     # Round all times to an integer
-    d_df.loc[:, 'white_time_used'] = wh_t_df.max(axis=1).apply(
-        lambda x: custom_round(x, base=10))
-    d_df.loc[:, 'black_time_used'] = bl_t_df.max(axis=1).apply(
-        lambda x: custom_round(x, base=10))
+    d_df.loc[:, 'white_time_used'] = wh_t_df.max(axis=1)
+    d_df.loc[:, 'black_time_used'] = bl_t_df.max(axis=1)
 
     # Get the winner and how they won
     d_df.loc[:, 'winner'] = d_df['termination'].str.extract(
@@ -417,8 +414,8 @@ def data_cleaning_6(d_df, m_df, bl_m_df, wh_m_df, wh_t_df, bl_t_df):
     d_df.loc[:, 'start_time'] = d_df['end_time'] - \
         (d_df['time_used'] + d_df['opp_time_used']) / 3.6
 
-    d_df.loc[:, 'start_time'] = [num if num >=
-                                 0 else num + 24000 for num in d_df.start_time]
+    d_df.loc[:, 'start_time'] = [num if num >= 0 else
+                                 num + 24000 for num in d_df.start_time]
 
     d_df.loc[:, 'num_moves'] = np.where(d_df['color'] == 1, d_df[
         'white_num_moves'], d_df['black_num_moves'])
@@ -441,14 +438,13 @@ def data_cleaning_6(d_df, m_df, bl_m_df, wh_m_df, wh_t_df, bl_t_df):
 
 def data_cleaning_7(d_df, wh_tm_df, bl_tm_df):
     '''Ninth function:
-    
     Input:
     d_df = Game information df
     bl_m_df = All moves by player with black pieces
     wh_m_df = All moves by player with white pieces
-    
+
     Adds bunch of information to game information df
-    
+
     Returns:
     d_df = Game information df - bunch of new columns'''
 
@@ -472,7 +468,7 @@ def data_cleaning_7(d_df, wh_tm_df, bl_tm_df):
     d_df.loc[:, 'elo'] = d_df['post_elo'].subtract(d_df['elo_delta'])
 
     # Chess assigns elo of 1000 to a new member
-    d_df.loc[0, 'elo'] = 1000
+    d_df.loc[0, 'elo'] = 1_000
     d_df.loc[0, 'elo_delta'] = d_df['post_elo'].iloc[0] - d_df['elo'].iloc[0]
     d_df.loc[:, 'opp_elo'] = d_df['opp_post_elo'].subtract(d_df['elo_delta'])
 
@@ -487,20 +483,25 @@ def data_cleaning_7(d_df, wh_tm_df, bl_tm_df):
     d_df.drop([d_df_len - 1], inplace=True)
 
     # Changed stings of how the player won to integers
-    d_df['won_by'].replace(['checkmate', 'resignation', 'time', 'material',
-                            'agreement', 'repetition', 'abandoned',
-                            'stalemate', 'rule'], list(reversed(range(9))),
-                            inplace=True)
+    d_df['won_by'].replace(['checkmate', 'resignation', 'time', 'abandoned',
+                            'material', 'agreement', 'repetition', 'stalemate',
+                            'rule'], list(reversed(range(9))), inplace=True)
 
     d_df.drop(columns=['white_elo', 'black_elo', 'white_max_move',
-                     'black_max_move'], inplace=True)
+                       'black_max_move'], inplace=True)
 
     return d_df
 
 
+def add_games_played_per_day(df):
+    '''New column added: The game number of the day'''
+    df.loc[:, 'day_game_num'] = df.groupby('date').cumcount()
+    df.loc[:, 'day_game_num'] = df['day_game_num'] + 1
+    return df
+
+
 def main_cleanup(file_name):
     '''Tenth function:
-
     Input:
     file_name = Game log from Chess.com
 
@@ -551,17 +552,21 @@ def main_cleanup(file_name):
     ddf3 = data_cleaning_6(ddf2, mdf2, bl_mdf1, wh_mdf1, wh_tdf1, bl_tdf1)
 
     # Ninth function
-    df_final = data_cleaning_7(ddf3, wh_tmdf1, bl_tmdf1)
+    df_second_to_last = data_cleaning_7(ddf3, wh_tmdf1, bl_tmdf1)
+
+    df_final = add_games_played_per_day(df_second_to_last)
 
     # Using the following columns to run analysis
     analysis_labels = ['date', 'day', 'weekday', 'start_time', 'game_time',
                        'color', 'elo', 'opp_elo', 'diff', 'result', 'won_by',
                        'num_moves', 'castled', 'opp_castled', 'castled_on',
-                       'opp_castled_on', 'time_used', 'opp_time_used']
+                       'opp_castled_on', 'time_used', 'opp_time_used',
+                       'day_game_num']
 
     # Using the following columns for running prediction models
     predictions_labels = ['result', 'diff', 'opp_elo', 'elo', 'game_time',
-                          'color', 'start_time', 'day', 'weekday']
+                          'color', 'start_time', 'day', 'weekday',
+                          'day_game_num']
 
     df_model = df_final[predictions_labels].copy()
     df_analysis = df_final[analysis_labels].copy()

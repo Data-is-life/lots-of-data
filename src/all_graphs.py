@@ -21,12 +21,11 @@ def custom_round_flt(x, base=.01):
 
 
 def get_graph_df(file_name):
-    '''
-    Input:
+    '''Input:
     file_name = csv file to clean for graphing
 
     Creates the dataframe from the file
-    Converts the time used from seconds to percentage of the time allowed 
+    Converts the time used from seconds to percentage of the time allowed
     Bins:
     - difference in elo
     - elo
@@ -36,8 +35,7 @@ def get_graph_df(file_name):
     - Time used by opp
 
     returns:
-    df = dataframe ready to be graphed
-    '''
+    df = dataframe ready to be graphed'''
 
     df = pd.read_csv(file_name)
 
@@ -62,12 +60,15 @@ def get_graph_df(file_name):
     bn_di = sorted(bn_di)
 
     bn_nm = list(range(0, 151, 5))
-    bn_el = list(range(600, 1101, 10))
+    bn_el = list(range(600, 1501, 10))
     bn_tu = list(range(0, 101, 5))
     bn_ot = list(range(0, 101, 5))
 
     df.loc[:, 'bin_elo'] = pd.cut(x=df.elo, bins=bn_el,
-                                  labels=bn_el[:-1]).astype(int)
+                                  labels=bn_el[:-1]).astype(float)
+    # except ValueError:
+    #     df.loc[:, 'bin_elo'] = pd.cut(x=df.elo, bins=bn_el,
+    #                                   labels=bn_el[:-1]).astype(float)
 
     df.loc[:, 'bin_opp_elo'] = pd.cut(x=df.opp_elo, bins=bn_op,
                                       labels=bn_op[:-1]).astype(float)
@@ -91,15 +92,13 @@ def get_graph_df(file_name):
 
 
 def mn_ct_df(df, col_name):
-    '''
-    Input:
+    '''Input:
     - df = dataframe for analysis loaded from the csv file
     - col_name = column name to evaluate
 
     Creates two dataframes from the main df and returns:
     - mndf = mean of all the values based on the selected column
-    - ctdf = sum of all the values based on the selected column
-    '''
+    - ctdf = sum of all the values based on the selected column'''
 
     mndf = df.groupby(col_name).mean()
     mndf.reset_index(inplace=True)
@@ -110,8 +109,7 @@ def mn_ct_df(df, col_name):
 
 
 def graph_lim(mndf, ctdf, col_name):
-    '''
-    Input:
+    '''Input:
     - mndf = dataframe created for mean values of specified column
     - ctdf = dataframe created for sum values of specified column
     - col_name = column name to evaluate
@@ -122,8 +120,7 @@ def graph_lim(mndf, ctdf, col_name):
     - rnm = interval y-axis value for mean value graph
     - mnc = minimum y-axis value for sum value graph
     - mxc = maximum y-axis value for sum value graph
-    - inc = interval y-axis value for sum value graph
-    '''
+    - inc = interval y-axis value for sum value graph'''
 
     for num in range(len(mndf)):
         if ctdf.loc[num, 'result'] < 5:
@@ -162,8 +159,7 @@ def graph_lim(mndf, ctdf, col_name):
 
 
 def x_axis_lims(ctdf, col_name):
-    '''
-    Input:
+    '''Input:
     ctdf = dataframe created for sum values of specified column
     col_name = column name to evaluate
 
@@ -171,8 +167,7 @@ def x_axis_lims(ctdf, col_name):
     - xmn = minimum x-axis value for both graphs
     - xmx = maximum x-axis value for both graphs
     - xin = interval x-axis value for both graphs
-    - smyx = second highest y-axis value for sum value graph
-    '''
+    - smyx = second highest y-axis value for sum value graph'''
 
     xmn = custom_round_int(ctdf[col_name].min(), 10)
     xmx = custom_round_int(ctdf[col_name].max(), 10)
