@@ -9,22 +9,6 @@ To devise a proper way to rectify the current model, which considers that the ga
 4. Time of the Day
 5. Day of the Week
 
-To properly assess which of these factors played the biggest impact, the decision to try different combinations was adopted. Here are all the combinations possible, represented as their number on the list above:
-- Single parameters only (1, 2, 3, 4, 5)
-- Combination of two parameters (1+2, 1+3, 1+4, 1+5, 2+3, 2+4, 2+5, 3+4, 3+5, 4+5)
-- Combination of three parameters (1+2+3, 1+2+4, 1+2+5, 1+3+4, 1+3+5, 1+4+5, 2+3+4, 2+3+5, 2+4+5, 3+4+5)
-- Combination of four parameters (1+2+3+4, 1+2+3+5, 1+2+4+5, 1+3+4+5, 2+3+4+5)
-- Combination of all five parameters (1+2+3+4+5)
-
-This ended up to be 31 different combinations. Ideally, all of them should be run to predict which one of these will end up doing the best estimators. However, after running only a handful of tests, all parameters devoid of Difference in ELO were dropped, since the accuracy in none of these combinations was even close to 66%.
-
-That left 16 total parameters to run tests on:
-- Single parameters only (1)
-- Combination of two parameters (1+2, 1+3, 1+4, 1+5)
-- Combination of three parameters (1+2+3, 1+2+4, 1+2+5, 1+3+4, 1+3+5, 1+4+5)
-- Combination of four parameters (1+2+3+4, 1+2+3+5, 1+2+4+5, 1+3+4+5)
-- Combination of all five parameters (1+2+3+4+5)
-
 <u><h2>Data</h2></u>
 
 The initial data contained a total of 2,276 total games played. All the games that ended up with the result of a draw were dropped since the main idea is to predict a win or a loss.
@@ -83,7 +67,6 @@ Hence, to get a better idea of which parameters will work the best, "For-Loop" i
 1. Losses:
     1. Mean Absolute Error (Measure of difference between two continuous variables)
     2. Binary Cross-Enropy (AKA Minimizing Log Loss)
-    3. Meas Square Error (Mean squared the difference between the estimated values and what is estimated)
 2. Optimizers:
     1. Nadam (Adam RMSprop with Nesterov Momentum)
     2. RMSProp (Divides the gradient by running mean of recent magnitude)
@@ -211,7 +194,7 @@ The repository has the following structure.
 
 
 ```
-Copyright (c) 2018, Mohit Gangwani
+Copyright (c) 2019, Mohit Gangwani
 
 All rights reserved.
 
